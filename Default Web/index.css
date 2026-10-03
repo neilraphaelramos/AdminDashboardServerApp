@@ -1,0 +1,323 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+
+/* ========================================
+   THEME VARIABLES
+   ======================================== */
+
+:root {
+    --background: #f4f6f8;
+    --surface: #ffffff;
+    --surface-secondary: #f8f9fa;
+
+    --text: #202124;
+    --secondary-text: #666666;
+    --muted-text: #888888;
+
+    --border: #e1e4e8;
+
+    --accent: #2672ff;
+    --accent-light: #eaf2ff;
+
+    --shadow: rgba(0, 0, 0, 0.06);
+}
+
+
+/* ========================================
+   DARK THEME
+   ======================================== */
+
+:root[data-theme="dark"] {
+    --background: #181a1b;
+    --surface: #242628;
+    --surface-secondary: #2d3033;
+
+    --text: #f1f3f4;
+    --secondary-text: #b5b8bb;
+    --muted-text: #8f9397;
+
+    --border: #3a3d40;
+
+    --accent: #4d8dff;
+    --accent-light: #263b60;
+
+    --shadow: rgba(0, 0, 0, 0.25);
+}
+
+
+/* ========================================
+   SYSTEM THEME
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+
+    :root[data-theme="system"] {
+        --background: #181a1b;
+        --surface: #242628;
+        --surface-secondary: #2d3033;
+
+        --text: #f1f3f4;
+        --secondary-text: #b5b8bb;
+        --muted-text: #8f9397;
+
+        --border: #3a3d40;
+
+        --accent: #4d8dff;
+        --accent-light: #263b60;
+
+        --shadow: rgba(0, 0, 0, 0.25);
+    }
+
+}
+
+
+/* ========================================
+   BODY
+   ======================================== */
+
+body {
+    background: var(--background);
+    color: var(--text);
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+/* ========================================
+   CONTAINER
+   ======================================== */
+
+.container {
+    width: min(900px, 90%);
+    margin: 60px auto;
+}
+
+
+/* ========================================
+   WELCOME
+   ======================================== */
+
+.welcome-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    background: var(--surface);
+    padding: 30px;
+
+    border-radius: 12px;
+    border: 1px solid var(--border);
+
+    box-shadow: 0 3px 12px var(--shadow);
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.welcome-icon {
+    width: 60px;
+    height: 60px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--accent-light);
+    color: var(--accent);
+
+    border-radius: 12px;
+
+    font-size: 30px;
+}
+
+
+.welcome-card h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    color: var(--text);
+}
+
+
+.welcome-card p {
+    margin: 0;
+
+    color: var(--secondary-text);
+
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+
+/* ========================================
+   INSTRUCTIONS
+   ======================================== */
+
+.instruction-card {
+    margin-top: 25px;
+
+    background: var(--surface);
+    padding: 30px;
+
+    border-radius: 12px;
+    border: 1px solid var(--border);
+
+    box-shadow: 0 3px 12px var(--shadow);
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.instruction-card h2 {
+    margin: 0 0 8px 0;
+
+    font-size: 21px;
+
+    color: var(--text);
+}
+
+
+.instruction-intro {
+    margin: 0 0 25px 0;
+
+    color: var(--secondary-text);
+
+    font-size: 14px;
+}
+
+
+/* ========================================
+   INSTRUCTION ITEMS
+   ======================================== */
+
+.instruction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+
+.instruction-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+
+    padding: 15px;
+
+    background: var(--surface-secondary);
+
+    border-radius: 8px;
+
+    transition:
+        background 0.2s ease;
+}
+
+
+.number {
+    width: 30px;
+    height: 30px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--accent);
+    color: white;
+
+    border-radius: 50%;
+
+    font-size: 14px;
+    font-weight: bold;
+}
+
+
+.instruction-item strong {
+    display: block;
+
+    margin-bottom: 5px;
+
+    font-size: 15px;
+
+    color: var(--text);
+}
+
+
+.instruction-item p {
+    margin: 0;
+
+    color: var(--secondary-text);
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* ========================================
+   FOOTER
+   ======================================== */
+
+footer {
+    text-align: center;
+
+    margin-top: 30px;
+
+    color: var(--muted-text);
+
+    font-size: 12px;
+}
+
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 600px) {
+
+    .container {
+        width: 92%;
+        margin: 30px auto;
+    }
+
+
+    .welcome-card,
+    .instruction-card {
+        padding: 20px;
+    }
+
+
+    .welcome-card h1 {
+        font-size: 22px;
+    }
+
+
+    .welcome-icon {
+        width: 50px;
+        height: 50px;
+
+        font-size: 24px;
+    }
+
+}

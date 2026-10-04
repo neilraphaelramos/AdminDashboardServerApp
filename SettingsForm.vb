@@ -1,31 +1,185 @@
-﻿Public Class SettingsForm
-	Private Sub SettingsForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-		TCSettings.Alignment = TabAlignment.Left
-		TCSettings.DrawMode = TabDrawMode.OwnerDrawFixed
-		TCSettings.SizeMode = TabSizeMode.Fixed
-		TCSettings.ItemSize = New Size(23, 150)
-	End Sub
+﻿Imports System.Runtime
 
-	Private Sub TCSetting_DrawItem(sender As Object, e As DrawItemEventArgs) Handles TCSettings.DrawItem
-		Dim tabcontrol As TabControl = DirectCast(sender, TabControl)
-		Dim tabPage As TabPage = TabControl.TabPages(e.Index)
-		Dim tabRect As Rectangle = tabcontrol.GetTabRect(e.Index)
+Public Class SettingsForm
 
-		If e.Index = tabcontrol.SelectedIndex Then
-			e.Graphics.FillRectangle(Brushes.DodgerBlue, tabRect)
-		Else
-			e.Graphics.FillRectangle(Brushes.LightGray, tabRect)
-		End If
+    Private Sub SettingsForm_Load(
+        sender As Object,
+        e As EventArgs
+    ) Handles MyBase.Load
 
-		Dim textColor As Color = If(e.Index = tabcontrol.SelectedIndex, Color.White, Color.Black)
-		Using font As New Font("Segoe UI", 9, FontStyle.Regular)
-			Dim textSize As SizeF = e.Graphics.MeasureString(tabPage.Text, font)
-			Dim x As Single = tabRect.X + (tabRect.Width - textSize.Width) / 2
-			Dim y As Single = tabRect.Y + (tabRect.Height - textSize.Height) / 2
+        '========================================
+        ' THEME COMBOBOX
+        '========================================
+        CMBTheme.Items.Clear()
+        CMBTheme.Items.Add("System")
+        CMBTheme.Items.Add("Light")
+        CMBTheme.Items.Add("Dark")
 
-			Using brush As New SolidBrush(textColor)
-				e.Graphics.DrawString(tabPage.Text, font, brush, x, y)
-			End Using
-		End Using
-	End Sub
+        '========================================
+        ' LOAD SETTINGS
+        '========================================
+        SettingsModule.LoadSettings()
+        GetWebsites()
+
+        CHKStartDefault.Checked = SettingsModule.StartWithDefaultPage
+        CHKOpenLast.Checked = SettingsModule.OpenLastWebsite
+        CHKFullScreen.Checked = SettingsModule.IsFullScreen
+
+        Select Case SettingsModule.Theme.ToLower()
+            Case "light"
+                CMBTheme.SelectedItem = "Light"
+            Case "dark"
+                CMBTheme.SelectedItem = "Dark"
+            Case Else
+                CMBTheme.SelectedItem = "System"
+        End Select
+
+        CHKDevTools.Checked = SettingsModule.EnableDevTools
+        CHKContextMenu.Checked = SettingsModule.EnableContextMenu
+        CHKInvalidCertificates.Checked = SettingsModule.AllowInvalidCertificates
+        CHKLogging.Checked = SettingsModule.EnableLogging
+        CHKDebug.Checked = SettingsModule.DebugMode
+
+        LoadWebsiteList()
+
+        '========================================
+        ' APPLY CURRENT THEME TO SETTINGS FORM
+        '========================================
+        ApplySettingsTheme()
+    End Sub
+
+    '========================================================
+    ' THEME
+    '========================================================
+    Private Sub ApplySettingsTheme()
+        ApplyWinFormsTheme(Me)
+
+        If CTCSettings IsNot Nothing Then
+            CTCSettings.ApplyTheme(IsCurrentDarkTheme())
+        End If
+    End Sub
+
+    '========================================================
+    ' DETERMINE CURRENT THEME
+    '========================================================
+    Private Function IsCurrentDarkTheme() As Boolean
+        Select Case SettingsModule.Theme.ToLower()
+            Case "dark"
+                Return True
+            Case "light"
+                Return False
+            Case Else
+                Return IsWindowsDarkMode()
+        End Select
+    End Function
+
+    '========================================================
+    ' WINDOWS SYSTEM DARK MODE
+    '========================================================
+    Private Function IsWindowsDarkMode() As Boolean
+        Try
+            Using key As Microsoft.Win32.RegistryKey =
+                Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    "Software\Microsoft\Windows\CurrentVersion\Themes\Personalize")
+
+                If key Is Nothing Then Return False
+
+                Dim value As Object = key.GetValue("AppsUseLightTheme")
+                If value Is Nothing Then Return False
+
+                Return Convert.ToInt32(value) = 0
+            End Using
+        Catch
+            Return False
+        End Try
+    End Function
+
+    '========================================================
+    ' APPLY BUTTON
+    '========================================================
+    Private Sub BtnApply_Click(sender As Object, e As EventArgs) Handles BtnApply.Click
+        ApplySettings()
+    End Sub
+
+    '========================================================
+    ' CLOSE BUTTON
+    '========================================================
+    Private Sub BtnOK_Click(sender As Object, e As EventArgs) Handles BtnOK.Click
+        Me.Close()
+    End Sub
+
+    '========================================================
+    ' APPLY ALL SETTINGS
+    '========================================================
+    Private Sub ApplySettings()
+        '------------------------------------------
+        ' General
+        '------------------------------------------
+        SettingsModule.StartWithDefaultPage = CHKStartDefault.Checked
+        SettingsModule.OpenLastWebsite = CHKOpenLast.Checked
+        SettingsModule.IsFullScreen = CHKFullScreen.Checked
+
+        '------------------------------------------
+        ' Appearance
+        '------------------------------------------
+        If CMBTheme.SelectedItem IsNot Nothing Then
+            SettingsModule.Theme = CMBTheme.SelectedItem.ToString().ToLower()
+        End If
+
+        '------------------------------------------
+        ' WebView
+        '------------------------------------------
+        SettingsModule.EnableDevTools = CHKDevTools.Checked
+        SettingsModule.EnableContextMenu = CHKContextMenu.Checked
+        SettingsModule.AllowInvalidCertificates = CHKInvalidCertificates.Checked
+
+        '------------------------------------------
+        ' Advanced
+        '------------------------------------------
+        SettingsModule.EnableLogging = CHKLogging.Checked
+        SettingsModule.DebugMode = CHKDebug.Checked
+
+        '------------------------------------------
+        ' SAVE TO FILE
+        '------------------------------------------
+        SettingsModule.SaveSettings()
+
+        '------------------------------------------
+        ' APPLY TO MAIN DASHBOARD
+        '------------------------------------------
+        Dim dashboard As maindashboard =
+            TryCast(Application.OpenForms("maindashboard"), maindashboard)
+
+        If dashboard IsNot Nothing Then
+            dashboard.ApplyApplicationTheme()
+        End If
+
+        '------------------------------------------
+        ' APPLY TO THIS SETTINGS WINDOW
+        '------------------------------------------
+        ApplySettingsTheme()
+
+        MessageBox.Show(
+            "Settings applied successfully.",
+            "Settings",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information)
+    End Sub
+
+    '========================================================
+    ' WEBSITE LIST
+    '========================================================
+    Private Sub LoadWebsiteList()
+        LVWebsites.Items.Clear()
+
+        Dim websites As List(Of WebsiteItem) = GetWebsites()
+
+        For Each website As WebsiteItem In websites
+            Dim item As New ListViewItem(website.name)
+            item.SubItems.Add(website.url)
+            item.Tag = website
+            LVWebsites.Items.Add(item)
+        Next
+    End Sub
+
 End Class

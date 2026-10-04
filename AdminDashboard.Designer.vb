@@ -28,39 +28,40 @@ Partial Class maindashboard
 		MSSettings = New ToolStripMenuItem()
 		WVDisplay = New WebView2()
 		PnlTabs = New FlowLayoutPanel()
+		MSExit = New ToolStripMenuItem()
 		MSMain.SuspendLayout()
 		CType(WVDisplay, ComponentModel.ISupportInitialize).BeginInit()
 		SuspendLayout()
 		' 
 		' MSMain
 		' 
-		MSMain.BackColor = Color.FromArgb(CByte(24), CByte(26), CByte(27))
+		MSMain.BackColor = SystemColors.Control
 		MSMain.Items.AddRange(New ToolStripItem() {FileToolStripMenuItem, MSSettings})
 		MSMain.Location = New Point(0, 0)
 		MSMain.Name = "MSMain"
-		MSMain.Size = New Size(800, 24)
+		MSMain.Size = New Size(1264, 24)
 		MSMain.TabIndex = 0
 		MSMain.Text = "MenuStrip1"
 		' 
 		' FileToolStripMenuItem
 		' 
-		FileToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {MSAddIP})
-		FileToolStripMenuItem.ForeColor = Color.White
+		FileToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {MSAddIP, MSExit})
+		FileToolStripMenuItem.ForeColor = Color.Black
 		FileToolStripMenuItem.Name = "FileToolStripMenuItem"
 		FileToolStripMenuItem.Size = New Size(37, 20)
 		FileToolStripMenuItem.Text = "File"
 		' 
 		' MSAddIP
 		' 
-		MSAddIP.BackColor = Color.FromArgb(CByte(24), CByte(26), CByte(27))
-		MSAddIP.ForeColor = Color.White
+		MSAddIP.BackColor = SystemColors.Control
+		MSAddIP.ForeColor = Color.Black
 		MSAddIP.Name = "MSAddIP"
-		MSAddIP.Size = New Size(154, 22)
-		MSAddIP.Text = "Add IP Address"
+		MSAddIP.Size = New Size(180, 22)
+		MSAddIP.Text = "Add URL Server"
 		' 
 		' MSSettings
 		' 
-		MSSettings.ForeColor = SystemColors.ButtonHighlight
+		MSSettings.ForeColor = Color.Black
 		MSSettings.Name = "MSSettings"
 		MSSettings.Size = New Size(61, 20)
 		MSSettings.Text = "Settings"
@@ -73,7 +74,7 @@ Partial Class maindashboard
 		WVDisplay.Dock = DockStyle.Fill
 		WVDisplay.Location = New Point(0, 64)
 		WVDisplay.Name = "WVDisplay"
-		WVDisplay.Size = New Size(800, 386)
+		WVDisplay.Size = New Size(1264, 617)
 		WVDisplay.TabIndex = 1
 		WVDisplay.ZoomFactor = 1R
 		' 
@@ -83,15 +84,21 @@ Partial Class maindashboard
 		PnlTabs.Dock = DockStyle.Top
 		PnlTabs.Location = New Point(0, 24)
 		PnlTabs.Name = "PnlTabs"
-		PnlTabs.Size = New Size(800, 40)
+		PnlTabs.Size = New Size(1264, 40)
 		PnlTabs.TabIndex = 2
 		PnlTabs.WrapContents = False
+		' 
+		' MSExit
+		' 
+		MSExit.Name = "MSExit"
+		MSExit.Size = New Size(180, 22)
+		MSExit.Text = "Exit"
 		' 
 		' maindashboard
 		' 
 		AutoScaleDimensions = New SizeF(7F, 15F)
 		AutoScaleMode = AutoScaleMode.Font
-		ClientSize = New Size(800, 450)
+		ClientSize = New Size(1264, 681)
 		Controls.Add(WVDisplay)
 		Controls.Add(PnlTabs)
 		Controls.Add(MSMain)
@@ -111,5 +118,6 @@ Partial Class maindashboard
 	Friend WithEvents MSSettings As ToolStripMenuItem
 	Friend WithEvents WVDisplay As WebView2
 	Friend WithEvents PnlTabs As FlowLayoutPanel
+	Friend WithEvents MSExit As ToolStripMenuItem
 
 End Class

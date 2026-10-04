@@ -10,6 +10,10 @@ Public Class maindashboard
 	Private DragStartPoint As Point
 	Private Shared ReadOnly FaviconClient As HttpClient = CreateFaviconClient()
 
+	Private previousWindowState As FormWindowState
+	Private previousBounds As Rectangle
+	Private previousFormBorderStyle As FormBorderStyle
+
 	Private Shared Function CreateFaviconClient() As HttpClient
 
 		Dim handler As New HttpClientHandler()
@@ -32,6 +36,12 @@ Public Class maindashboard
 	End Function
 
 	Private Sub maindashboard_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+		SettingsModule.LoadSettings()
+
+		ApplyWinFormsTheme(Me)
+
+		ApplyFullScreen()
 
 		LoadIP()
 
@@ -56,7 +66,7 @@ Public Class maindashboard
 				AddressOf WebView2_ServerCertificateErrorDetected
 
 			If String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
-				SetTheme("system")
+				SetTheme(SettingsModule.Theme)
 				ShowDefaultWeb(WVDisplay.CoreWebView2)
 				AddHandler WVDisplay.NavigationCompleted, AddressOf DefaultWeb_NavigationCompleted
 			Else
@@ -69,6 +79,28 @@ Public Class maindashboard
 			)
 
 		End Try
+
+	End Sub
+
+	Public Async Sub ApplyApplicationTheme()
+
+		ApplyWinFormsTheme(Me)
+
+		SetTheme(SettingsModule.Theme)
+
+		ApplyFullScreen()
+
+		If WVDisplay.CoreWebView2 Is Nothing Then
+			Return
+		End If
+
+		If String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
+
+			Await ApplyTheme(
+			WVDisplay.CoreWebView2
+		)
+
+		End If
 
 	End Sub
 
@@ -104,12 +136,39 @@ Public Class maindashboard
 
 	End Sub
 
+	Private Sub ApplyFullScreen()
+		Dim isFullScreen = SettingsModule.IsFullScreen
 
-	Private Sub WebView2_ServerCertificateErrorDetected(
-		sender As Object,
-		e As CoreWebView2ServerCertificateErrorDetectedEventArgs)
+		If isFullScreen Then
+			EnterFullScreen()
+		Else
+			ExitFullScreen()
+		End If
+	End Sub
 
-		If e.RequestUri.StartsWith(CurrentLinkWeb, StringComparison.OrdinalIgnoreCase) Then
+	Private Sub EnterFullScreen()
+		previousWindowState = Me.WindowState
+		previousBounds = Me.Bounds
+		previousFormBorderStyle = Me.FormBorderStyle
+
+		Me.FormBorderStyle = FormBorderStyle.None
+		Me.WindowState = FormWindowState.Normal
+		Me.Bounds = Screen.FromControl(Me).Bounds
+	End Sub
+
+	Private Sub ExitFullScreen()
+		Dim isFullScreen = SettingsModule.IsFullScreen
+
+		If Not isFullScreen Then Return
+
+		Me.FormBorderStyle = previousFormBorderStyle
+		Me.WindowState = previousWindowState
+		Me.Bounds = previousBounds
+	End Sub
+
+	Private Sub WebView2_ServerCertificateErrorDetected(sender As Object, e As CoreWebView2ServerCertificateErrorDetectedEventArgs)
+
+		If Not String.IsNullOrWhiteSpace(CurrentLinkWeb) AndAlso e.RequestUri.StartsWith(CurrentLinkWeb, StringComparison.OrdinalIgnoreCase) Then
 
 			e.Action =
 				CoreWebView2ServerCertificateErrorAction.AlwaysAllow
@@ -633,5 +692,19 @@ Public Class maindashboard
 
 	Private Sub MSSettings_Click(sender As Object, e As EventArgs) Handles MSSettings.Click
 		SettingsForm.Show()
+	End Sub
+
+	Private Sub MSExit_Click(sender As Object, e As EventArgs) Handles MSExit.Click
+		Dim result = CustomDesignGUI.ThemedMessageBox(
+			"Are you sure you want to exit?",
+			"Exit",
+			MessageBoxButtons.YesNo,
+			MessageBoxIcon.Question,
+			themeSet:=SettingsModule.Theme
+		)
+
+		If result = DialogResult.Yes Then
+			Application.Exit()
+		End If
 	End Sub
 End Class

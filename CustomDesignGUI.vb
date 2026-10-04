@@ -104,5 +104,112 @@
         End Using
 
     End Function
+
+    Public Shared Function ThemedMessageBox(
+    text As String,
+    Optional title As String = "Confirm",
+    Optional buttons As MessageBoxButtons = MessageBoxButtons.YesNo,
+    Optional icon As MessageBoxIcon = MessageBoxIcon.Question,
+    Optional themeSet As String = "system"
+) As DialogResult
+
+        Using frm As New Form()
+            '---------- Form ----------
+            frm.Text = title
+            frm.StartPosition = FormStartPosition.CenterParent
+            frm.FormBorderStyle = FormBorderStyle.FixedDialog
+            frm.ClientSize = New Size(380, 160)
+            frm.MinimizeBox = False
+            frm.MaximizeBox = False
+            frm.ShowInTaskbar = False
+            frm.Font = New Font("Segoe UI", 9.0F)
+
+            ' Colors
+            Dim backColor As Color
+            Dim foreColor As Color
+            Dim buttonBack As Color
+            Dim buttonBorder As Color
+
+            If themeSet = "system" OrElse themeSet = "dark" Then
+                backColor = Color.FromArgb(30, 30, 30)
+                foreColor = Color.White
+                buttonBack = Color.FromArgb(60, 60, 60)
+                buttonBorder = Color.FromArgb(80, 80, 80)
+            Else
+                backColor = Color.FromArgb(245, 245, 245)
+                foreColor = Color.Black
+                buttonBack = Color.FromArgb(230, 230, 230)
+                buttonBorder = Color.FromArgb(180, 180, 180)
+            End If
+
+            frm.BackColor = backColor
+            frm.ForeColor = foreColor
+
+            '---------- Message Label ----------
+            Dim lblMessage As New Label()
+            lblMessage.Text = text
+            lblMessage.Location = New Point(20, 25)
+            lblMessage.Size = New Size(340, 60)
+            lblMessage.ForeColor = foreColor
+            lblMessage.BackColor = Color.Transparent
+
+            '---------- Buttons ----------
+            Dim btn1 As New Button()
+            Dim btn2 As New Button()
+
+            btn1.Size = New Size(85, 30)
+            btn2.Size = New Size(85, 30)
+            btn1.FlatStyle = FlatStyle.Flat
+            btn2.FlatStyle = FlatStyle.Flat
+            btn1.BackColor = buttonBack
+            btn2.BackColor = buttonBack
+            btn1.ForeColor = foreColor
+            btn2.ForeColor = foreColor
+            btn1.FlatAppearance.BorderColor = buttonBorder
+            btn2.FlatAppearance.BorderColor = buttonBorder
+
+            Select Case buttons
+                Case MessageBoxButtons.YesNo
+                    btn1.Text = "Yes"
+                    btn1.DialogResult = DialogResult.Yes
+                    btn1.Location = New Point(180, 110)
+
+                    btn2.Text = "No"
+                    btn2.DialogResult = DialogResult.No
+                    btn2.Location = New Point(275, 110)
+
+                    frm.Controls.Add(btn1)
+                    frm.Controls.Add(btn2)
+                    frm.AcceptButton = btn1
+                    frm.CancelButton = btn2
+
+                Case MessageBoxButtons.OKCancel
+                    btn1.Text = "OK"
+                    btn1.DialogResult = DialogResult.OK
+                    btn1.Location = New Point(180, 110)
+
+                    btn2.Text = "Cancel"
+                    btn2.DialogResult = DialogResult.Cancel
+                    btn2.Location = New Point(275, 110)
+
+                    frm.Controls.Add(btn1)
+                    frm.Controls.Add(btn2)
+                    frm.AcceptButton = btn1
+                    frm.CancelButton = btn2
+
+                Case Else ' OK only
+                    btn1.Text = "OK"
+                    btn1.DialogResult = DialogResult.OK
+                    btn1.Location = New Point(275, 110)
+
+                    frm.Controls.Add(btn1)
+                    frm.AcceptButton = btn1
+            End Select
+
+            frm.Controls.Add(lblMessage)
+
+            Return frm.ShowDialog()
+        End Using
+    End Function
 End Class
 

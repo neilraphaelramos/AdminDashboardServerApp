@@ -59,8 +59,8 @@ Public Class maindashboard
 
 			Await WVDisplay.EnsureCoreWebView2Async(Nothing)
 
-			WVDisplay.CoreWebView2.Settings.AreDevToolsEnabled = False
-			WVDisplay.CoreWebView2.Settings.AreDefaultContextMenusEnabled = False
+			WVDisplay.CoreWebView2.Settings.AreDevToolsEnabled = SettingsModule.EnableDevTools
+			WVDisplay.CoreWebView2.Settings.AreDefaultContextMenusEnabled = SettingsModule.EnableContextMenu
 
 			AddHandler WVDisplay.CoreWebView2.ServerCertificateErrorDetected,
 				AddressOf WebView2_ServerCertificateErrorDetected
@@ -182,7 +182,7 @@ Public Class maindashboard
 
 	End Sub
 
-	Private Sub LoadWebsiteButtons()
+	Public Sub LoadWebsiteButtons()
 
 		PnlTabs.SuspendLayout()
 
@@ -245,6 +245,7 @@ Public Class maindashboard
 
 		btn.Cursor = Cursors.Hand
 
+
 		' Favicon + text layout
 		btn.TextImageRelation = TextImageRelation.ImageBeforeText
 		btn.ImageAlign = ContentAlignment.MiddleLeft
@@ -290,7 +291,19 @@ Public Class maindashboard
 
 	End Sub
 
-	Private Sub HighlightActiveButton()
+	Public Sub HighlightActiveButton()
+		Dim setDark As String = SettingsModule.Theme
+
+		Dim normalBack As Color
+		Dim normalFore As Color
+
+		If setDark = "system" Or setDark = "dark" Then
+			normalBack = Color.FromArgb(45, 45, 45)
+			normalFore = Color.White
+		Else
+			normalBack = SystemColors.Control
+			normalFore = SystemColors.ControlText
+		End If
 
 		For Each control As Control In PnlTabs.Controls
 
@@ -319,8 +332,8 @@ Public Class maindashboard
 			Else
 
 				' Normal tab
-				btn.BackColor = SystemColors.Control
-				btn.ForeColor = SystemColors.ControlText
+				btn.BackColor = normalBack
+				btn.ForeColor = normalFore
 
 			End If
 

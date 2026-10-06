@@ -65,6 +65,7 @@ Partial Class SettingsForm
 		CHKFullScreen = New CheckBox()
 		TPAppearances = New TabPage()
 		TPWebView = New TabPage()
+		lblRestartInfo = New Label()
 		TPWebsites = New TabPage()
 		TPAdvanced = New TabPage()
 		pnlHeader.SuspendLayout()
@@ -179,7 +180,7 @@ Partial Class SettingsForm
 		' 
 		Label7.AutoSize = True
 		Label7.ForeColor = Color.DarkOrange
-		Label7.Location = New Point(6, 166)
+		Label7.Location = New Point(6, 180)
 		Label7.Name = "Label7"
 		Label7.Size = New Size(193, 30)
 		Label7.TabIndex = 7
@@ -188,7 +189,7 @@ Partial Class SettingsForm
 		' CHKInvalidCertificates
 		' 
 		CHKInvalidCertificates.AutoSize = True
-		CHKInvalidCertificates.Location = New Point(6, 144)
+		CHKInvalidCertificates.Location = New Point(6, 158)
 		CHKInvalidCertificates.Name = "CHKInvalidCertificates"
 		CHKInvalidCertificates.Size = New Size(191, 19)
 		CHKInvalidCertificates.TabIndex = 6
@@ -199,7 +200,7 @@ Partial Class SettingsForm
 		' 
 		Label6.AutoSize = True
 		Label6.Font = New Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-		Label6.Location = New Point(6, 105)
+		Label6.Location = New Point(6, 119)
 		Label6.Name = "Label6"
 		Label6.Size = New Size(65, 20)
 		Label6.TabIndex = 5
@@ -509,6 +510,7 @@ Partial Class SettingsForm
 		' 
 		' TPWebView
 		' 
+		TPWebView.Controls.Add(lblRestartInfo)
 		TPWebView.Controls.Add(Label7)
 		TPWebView.Controls.Add(Label5)
 		TPWebView.Controls.Add(CHKInvalidCertificates)
@@ -521,6 +523,16 @@ Partial Class SettingsForm
 		TPWebView.TabIndex = 2
 		TPWebView.Text = "WebView"
 		TPWebView.UseVisualStyleBackColor = True
+		' 
+		' lblRestartInfo
+		' 
+		lblRestartInfo.AutoSize = True
+		lblRestartInfo.ForeColor = Color.Red
+		lblRestartInfo.Location = New Point(4, 82)
+		lblRestartInfo.Name = "lblRestartInfo"
+		lblRestartInfo.Size = New Size(258, 30)
+		lblRestartInfo.TabIndex = 8
+		lblRestartInfo.Text = "⚠ You need to restart application to take affect." & vbCrLf & vbCrLf
 		' 
 		' TPWebsites
 		' 
@@ -626,4 +638,5 @@ Partial Class SettingsForm
 	Friend WithEvents TPAdvanced As TabPage
 	Friend WithEvents Label12 As Label
 	Friend WithEvents CHKFullScreen As CheckBox
+	Friend WithEvents lblRestartInfo As Label
 End Class

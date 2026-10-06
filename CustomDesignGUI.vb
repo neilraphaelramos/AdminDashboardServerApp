@@ -10,7 +10,15 @@
     End Class
 
 
-    Public Shared Function WebsiteInputBox(title As String) As WebsiteInputResult
+    Public Shared Function WebsiteInputBox(title As String, Optional defaultname As String = "", Optional defaultUrl As String = "", Optional updateorok As Boolean = False) As WebsiteInputResult
+
+        Dim setText As String = ""
+
+        If updateorok Then
+            setText = "OK"
+        Else
+            setText = "Update"
+        End If
 
         Using frm As New Form()
 
@@ -36,6 +44,7 @@
             txtname.BackColor = Color.FromArgb(45, 45, 45)
             txtname.ForeColor = Color.White
             txtname.BorderStyle = BorderStyle.FixedSingle
+            txtname.Text = defaultname
 
             Dim lblUrl As New Label()
             lblUrl.Text = "Web URL"
@@ -49,9 +58,10 @@
             txtUrl.BackColor = Color.FromArgb(45, 45, 45)
             txtUrl.ForeColor = Color.White
             txtUrl.BorderStyle = BorderStyle.FixedSingle
+            txtUrl.Text = defaultUrl
 
             Dim btnOK As New Button()
-            btnOK.Text = "OK"
+            btnOK.Text = setText
             btnOK.Location = New Point(180, 150)
             btnOK.Size = New Size(75, 30)
             btnOK.BackColor = Color.FromArgb(60, 60, 60)

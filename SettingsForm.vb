@@ -1,4 +1,5 @@
 ﻿Imports System.Runtime
+Imports System.Drawing
 
 Public Class SettingsForm
 
@@ -62,10 +63,18 @@ Public Class SettingsForm
 	End Sub
 
 	Private Sub CheckIfNeedRestart()
-		If CHKContextMenu.Checked = SettingsModule.EnableDevTools And CHKContextMenu.Checked = SettingsModule.EnableContextMenu Then
-			lblRestartInfo.Visible = False
+		Dim changeTextBtn As Boolean = (CHKDevTools.Checked <> SettingsModule.EnableDevTools) OrElse (CHKContextMenu.Checked <> SettingsModule.EnableContextMenu)
+
+		lblRestartInfo.Visible = (CHKDevTools.Checked <> SettingsModule.EnableDevTools) OrElse (CHKContextMenu.Checked <> SettingsModule.EnableContextMenu)
+
+		If changeTextBtn Then
+			BtnApply.Text = "Apply & Restart"
+			BtnApply.AutoSize = True
+			BtnApply.Location = New Point(275, 13)
 		Else
-			lblRestartInfo.Visible = True
+			BtnApply.Text = "Apply"
+			BtnApply.AutoSize = False
+			BtnApply.Location = New Point(285, 13)
 		End If
 	End Sub
 
@@ -122,6 +131,8 @@ Public Class SettingsForm
 	' APPLY ALL SETTINGS
 	'========================================================
 	Private Sub ApplySettings()
+		Dim needRestart As Boolean = (CHKDevTools.Checked <> SettingsModule.EnableDevTools) OrElse (CHKContextMenu.Checked <> SettingsModule.EnableContextMenu)
+
 		'------------------------------------------
 		' General
 		'------------------------------------------
@@ -157,25 +168,27 @@ Public Class SettingsForm
 		'------------------------------------------
 		' APPLY TO MAIN DASHBOARD
 		'------------------------------------------
+
+		ApplySettingsTheme()
+
 		Dim dashboard As maindashboard =
 			TryCast(Application.OpenForms("maindashboard"), maindashboard)
 
-		If dashboard IsNot Nothing Then
-			dashboard.ApplyApplicationTheme()
-			dashboard.LoadWebsiteButtons()
-			dashboard.HighlightActiveButton()
+		If needRestart Then
+			Application.Restart()
+		Else
+			If dashboard IsNot Nothing Then
+				dashboard.ApplyApplicationTheme()
+				dashboard.LoadWebsiteButtons()
+				dashboard.HighlightActiveButton()
+			End If
+
+			MessageBox.Show(
+				"Settings applied successfully.",
+				"Settings",
+				MessageBoxButtons.OK,
+				MessageBoxIcon.Information)
 		End If
-
-		'------------------------------------------
-		' APPLY TO THIS SETTINGS WINDOW
-		'------------------------------------------
-		ApplySettingsTheme()
-
-		MessageBox.Show(
-			"Settings applied successfully.",
-			"Settings",
-			MessageBoxButtons.OK,
-			MessageBoxIcon.Information)
 	End Sub
 
 	'========================================================

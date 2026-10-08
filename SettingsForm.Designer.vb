@@ -27,8 +27,6 @@ Partial Class SettingsForm
 		Label2 = New Label()
 		CHKStartDefault = New CheckBox()
 		Label1 = New Label()
-		CHKShowNavigation = New CheckBox()
-		Label4 = New Label()
 		lblThemeDescription = New Label()
 		CMBTheme = New ComboBox()
 		lblTheme = New Label()
@@ -125,26 +123,6 @@ Partial Class SettingsForm
 		Label1.Size = New Size(89, 20)
 		Label1.TabIndex = 0
 		Label1.Text = "Application"
-		' 
-		' CHKShowNavigation
-		' 
-		CHKShowNavigation.AutoSize = True
-		CHKShowNavigation.Location = New Point(9, 122)
-		CHKShowNavigation.Name = "CHKShowNavigation"
-		CHKShowNavigation.Size = New Size(157, 19)
-		CHKShowNavigation.TabIndex = 5
-		CHKShowNavigation.Text = "Show website navigation"
-		CHKShowNavigation.UseVisualStyleBackColor = True
-		' 
-		' Label4
-		' 
-		Label4.AutoSize = True
-		Label4.Font = New Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-		Label4.Location = New Point(6, 99)
-		Label4.Name = "Label4"
-		Label4.Size = New Size(72, 20)
-		Label4.TabIndex = 4
-		Label4.Text = "Interface"
 		' 
 		' lblThemeDescription
 		' 
@@ -495,9 +473,7 @@ Partial Class SettingsForm
 		' 
 		' TPAppearances
 		' 
-		TPAppearances.Controls.Add(CHKShowNavigation)
 		TPAppearances.Controls.Add(lblTheme)
-		TPAppearances.Controls.Add(Label4)
 		TPAppearances.Controls.Add(CMBTheme)
 		TPAppearances.Controls.Add(lblThemeDescription)
 		TPAppearances.Location = New Point(144, 4)
@@ -601,8 +577,6 @@ Partial Class SettingsForm
 	Friend WithEvents Label3 As Label
 	Friend WithEvents CHKOpenLast As CheckBox
 	Friend WithEvents Label2 As Label
-	Friend WithEvents CHKShowNavigation As CheckBox
-	Friend WithEvents Label4 As Label
 	Friend WithEvents lblThemeDescription As Label
 	Friend WithEvents CMBTheme As ComboBox
 	Friend WithEvents lblTheme As Label

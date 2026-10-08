@@ -47,6 +47,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="Error\index.html">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Error\style.css">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="My Project\Application.myapp">
 			<Generator>MyApplicationCodeGenerator</Generator>
 			<LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -55,6 +61,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Config\" />
+	  <Folder Include="Error\" />
 	</ItemGroup>
 
 </Project>

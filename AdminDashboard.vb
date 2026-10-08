@@ -10,9 +10,10 @@ Public Class maindashboard
 	Private DragStartPoint As Point
 	Private Shared ReadOnly FaviconClient As HttpClient = CreateFaviconClient()
 
-	Private previousWindowState As FormWindowState
 	Private previousBounds As Rectangle
-	Private previousFormBorderStyle As FormBorderStyle
+
+	'Private ReadOnly ConnectionTimeoutMs As Integer = 5000
+	'Private WithEvents TimeoutTimer As New Timer()
 
 	Private Shared Function CreateFaviconClient() As HttpClient
 
@@ -60,19 +61,36 @@ Public Class maindashboard
 			Await WVDisplay.EnsureCoreWebView2Async(Nothing)
 
 			WVDisplay.CoreWebView2.Settings.AreDevToolsEnabled = SettingsModule.EnableDevTools
+			WVDisplay.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = SettingsModule.EnableDevTools
 			WVDisplay.CoreWebView2.Settings.AreDefaultContextMenusEnabled = SettingsModule.EnableContextMenu
+
+			AddHandler WVDisplay.CoreWebView2.ContextMenuRequested,
+				AddressOf CoreWebView2_ContextMenuRequested
 
 			AddHandler WVDisplay.CoreWebView2.ServerCertificateErrorDetected,
 				AddressOf WebView2_ServerCertificateErrorDetected
 
-			If String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
+			AddHandler WVDisplay.CoreWebView2.NavigationCompleted,
+				AddressOf WebView_NavigationCompleted
+			AddHandler WVDisplay.CoreWebView2.WebMessageReceived,
+				AddressOf WebView_WebMessageReceived
+
+			If SettingsModule.StartWithDefaultPage Then
+				CurrentLinkWeb = ""
+				AdminURLName = ""
 				SetTheme(SettingsModule.Theme)
 				ShowDefaultWeb(WVDisplay.CoreWebView2)
 				AddHandler WVDisplay.NavigationCompleted, AddressOf DefaultWeb_NavigationCompleted
-			Else
-				NavigateToServer()
-			End If
 
+			ElseIf SettingsModule.OpenLastWebsite AndAlso Not String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
+				NavigateToServer()
+
+			Else
+				CurrentLinkWeb = ""
+				SetTheme(SettingsModule.Theme)
+				ShowDefaultWeb(WVDisplay.CoreWebView2)
+				AddHandler WVDisplay.NavigationCompleted, AddressOf DefaultWeb_NavigationCompleted
+			End If
 
 		Catch ex As Exception
 			MessageBox.Show(ex.Message, "WebView2 Error", MessageBoxButtons.OK, MessageBoxIcon.Error
@@ -102,6 +120,7 @@ Public Class maindashboard
 
 		End If
 
+		ErrorPageModule.ApplyThemeErrorPage(WVDisplay.CoreWebView2)
 	End Sub
 
 	Private Async Sub DefaultWeb_NavigationCompleted(
@@ -120,6 +139,25 @@ Public Class maindashboard
 		WVDisplay.CoreWebView2
 	)
 
+	End Sub
+
+	Private Sub WebView_NavigationCompleted(sender As Object, e As CoreWebView2NavigationCompletedEventArgs)
+		If e.IsSuccess Then Return
+		Dim currentSource = ""
+		If WVDisplay.CoreWebView2 IsNot Nothing Then
+			currentSource = WVDisplay.CoreWebView2.Source
+		End If
+
+		If currentSource.Contains("Error") OrElse currentSource.Contains("index.html") Then
+			Return
+		End If
+
+		ErrorPageModule.Show(WVDisplay.CoreWebView2, CurrentLinkWeb)
+	End Sub
+
+	Private Sub WebView_WebMessageReceived(sender As Object, e As CoreWebView2WebMessageReceivedEventArgs)
+		Dim message As String = e.TryGetWebMessageAsString()
+		ErrorPageModule.HandleWebMessage(message)
 	End Sub
 
 	Private Sub NavigateToServer()
@@ -146,10 +184,16 @@ Public Class maindashboard
 		End If
 	End Sub
 
+	Private Sub CoreWebView2_ContextMenuRequested(sender As Object, e As CoreWebView2ContextMenuRequestedEventArgs)
+		If Not SettingsModule.EnableContextMenu Then
+			e.Handled = True
+		End If
+	End Sub
+
 	Private Sub EnterFullScreen()
-		previousWindowState = Me.WindowState
+		If Me.FormBorderStyle = FormBorderStyle.None Then Return
+
 		previousBounds = Me.Bounds
-		previousFormBorderStyle = Me.FormBorderStyle
 
 		Me.FormBorderStyle = FormBorderStyle.None
 		Me.WindowState = FormWindowState.Normal
@@ -157,13 +201,21 @@ Public Class maindashboard
 	End Sub
 
 	Private Sub ExitFullScreen()
-		Dim isFullScreen = SettingsModule.IsFullScreen
+		If Me.FormBorderStyle <> FormBorderStyle.None Then Return
 
-		If Not isFullScreen Then Return
+		Me.FormBorderStyle = FormBorderStyle.Sizable
+		Me.WindowState = FormWindowState.Maximized
 
-		Me.FormBorderStyle = previousFormBorderStyle
-		Me.WindowState = previousWindowState
-		Me.Bounds = previousBounds
+		If previousBounds.Width > 0 AndAlso previousBounds.Height > 0 Then
+			Me.Bounds = previousBounds
+		Else
+			Dim screenBounds = Screen.FromControl(Me).WorkingArea
+			Me.Location = New Point(
+				screenBounds.Left + (screenBounds.Width - Me.Width) \ 2,
+				screenBounds.Top + (screenBounds.Height - Me.Height) \ 2
+			)
+		End If
+
 	End Sub
 
 	Private Sub WebView2_ServerCertificateErrorDetected(sender As Object, e As CoreWebView2ServerCertificateErrorDetectedEventArgs)
@@ -704,7 +756,7 @@ Public Class maindashboard
 	End Sub
 
 	Private Sub MSSettings_Click(sender As Object, e As EventArgs) Handles MSSettings.Click
-		SettingsForm.Show()
+		SettingsForm.ShowDialog()
 	End Sub
 
 	Private Sub MSExit_Click(sender As Object, e As EventArgs) Handles MSExit.Click

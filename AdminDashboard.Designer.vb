@@ -25,10 +25,10 @@ Partial Class maindashboard
 		MSMain = New MenuStrip()
 		FileToolStripMenuItem = New ToolStripMenuItem()
 		MSAddIP = New ToolStripMenuItem()
+		MSExit = New ToolStripMenuItem()
 		MSSettings = New ToolStripMenuItem()
 		WVDisplay = New WebView2()
 		PnlTabs = New FlowLayoutPanel()
-		MSExit = New ToolStripMenuItem()
 		MSMain.SuspendLayout()
 		CType(WVDisplay, ComponentModel.ISupportInitialize).BeginInit()
 		SuspendLayout()
@@ -56,8 +56,14 @@ Partial Class maindashboard
 		MSAddIP.BackColor = SystemColors.Control
 		MSAddIP.ForeColor = Color.Black
 		MSAddIP.Name = "MSAddIP"
-		MSAddIP.Size = New Size(180, 22)
+		MSAddIP.Size = New Size(155, 22)
 		MSAddIP.Text = "Add URL Server"
+		' 
+		' MSExit
+		' 
+		MSExit.Name = "MSExit"
+		MSExit.Size = New Size(155, 22)
+		MSExit.Text = "Exit"
 		' 
 		' MSSettings
 		' 
@@ -88,12 +94,6 @@ Partial Class maindashboard
 		PnlTabs.TabIndex = 2
 		PnlTabs.WrapContents = False
 		' 
-		' MSExit
-		' 
-		MSExit.Name = "MSExit"
-		MSExit.Size = New Size(180, 22)
-		MSExit.Text = "Exit"
-		' 
 		' maindashboard
 		' 
 		AutoScaleDimensions = New SizeF(7F, 15F)
@@ -104,6 +104,7 @@ Partial Class maindashboard
 		Controls.Add(MSMain)
 		MainMenuStrip = MSMain
 		Name = "maindashboard"
+		StartPosition = FormStartPosition.CenterScreen
 		Text = "Admin Dashboard App"
 		MSMain.ResumeLayout(False)
 		MSMain.PerformLayout()

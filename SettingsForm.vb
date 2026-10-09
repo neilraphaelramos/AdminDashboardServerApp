@@ -2,11 +2,10 @@
 Imports System.Drawing
 
 Public Class SettingsForm
+	Private tempWebsite As List(Of WebsiteItem)
+	Private websitesChanged As Boolean = False
 
-	Private Sub SettingsForm_Load(
-		sender As Object,
-		e As EventArgs
-	) Handles MyBase.Load
+	Private Sub SettingsForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
 		'========================================
 		' THEME COMBOBOX
@@ -35,12 +34,20 @@ Public Class SettingsForm
 				CMBTheme.SelectedItem = "System"
 		End Select
 
+		BtnApply.Enabled = False
+		BtnEditWebsite.Enabled = False
+		BtnRemoveWebsite.Enabled = False
+		BtnMoveUp.Enabled = False
+		BtnMoveDown.Enabled = False
+
 		CHKDevTools.Checked = SettingsModule.EnableDevTools
 		CHKContextMenu.Checked = SettingsModule.EnableContextMenu
 		CHKInvalidCertificates.Checked = SettingsModule.AllowInvalidCertificates
 		CHKLogging.Checked = SettingsModule.EnableLogging
 		CHKDebug.Checked = SettingsModule.DebugMode
 
+		tempWebsite = GetWebsites()
+		websitesChanged = False
 		LoadWebsiteList()
 
 		CheckIfNeedRestart()
@@ -189,6 +196,13 @@ Public Class SettingsForm
 				MessageBoxButtons.OK,
 				MessageBoxIcon.Information)
 		End If
+
+		If websitesChanged Then
+			SaveWebsites(tempWebsite)
+			websitesChanged = False
+		End If
+
+		BtnApply.Enabled = False
 	End Sub
 
 	'========================================================
@@ -197,9 +211,11 @@ Public Class SettingsForm
 	Private Sub LoadWebsiteList()
 		LVWebsites.Items.Clear()
 
-		Dim websites As List(Of WebsiteItem) = GetWebsites()
+		If tempWebsite Is Nothing Then
+			tempWebsite = New List(Of WebsiteItem)
+		End If
 
-		For Each website As WebsiteItem In websites
+		For Each website As WebsiteItem In tempWebsite
 			Dim item As New ListViewItem(website.name)
 			item.SubItems.Add(website.url)
 			item.Tag = website
@@ -207,33 +223,88 @@ Public Class SettingsForm
 		Next
 	End Sub
 
+	Private Function HasSettingsChanged() As Boolean
+		If websitesChanged Then Return True
+
+		Dim currentTheme As String = "system"
+		If CMBTheme.SelectedItem IsNot Nothing Then
+			currentTheme = CMBTheme.SelectedItem.ToString().ToLower()
+		End If
+		If currentTheme <> SettingsModule.Theme.ToLower() Then Return True
+
+		If CHKStartDefault.Checked <> SettingsModule.StartWithDefaultPage Then Return True
+		If CHKOpenLast.Checked <> SettingsModule.OpenLastWebsite Then Return True
+		If CHKFullScreen.Checked <> SettingsModule.IsFullScreen Then Return True
+		If CHKDevTools.Checked <> SettingsModule.EnableDevTools Then Return True
+		If CHKContextMenu.Checked <> SettingsModule.EnableContextMenu Then Return True
+		If CHKInvalidCertificates.Checked <> SettingsModule.AllowInvalidCertificates Then Return True
+		If CHKLogging.Checked <> SettingsModule.EnableLogging Then Return True
+		If CHKDebug.Checked <> SettingsModule.DebugMode Then Return True
+
+		Return False
+	End Function
+
+	Private Sub UpdateApplyButtonState()
+		BtnApply.Enabled = HasSettingsChanged()
+		CheckIfNeedRestart()
+	End Sub
+
+	Private Sub CHKStartDefault_CheckedChanged(sender As Object, e As EventArgs) Handles CHKStartDefault.CheckedChanged
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub CHKOpenLast_CheckedChanged(sender As Object, e As EventArgs) Handles CHKOpenLast.CheckedChanged
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub CHKFullScreen_CheckedChanged(sender As Object, e As EventArgs) Handles CHKFullScreen.CheckedChanged
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub CMBTheme_SelectedIndexChanged(sender As Object, e As EventArgs) Handles CMBTheme.SelectedIndexChanged
+		UpdateApplyButtonState()
+	End Sub
+
 	Private Sub CHKDevTools_CheckedChanged(sender As Object, e As EventArgs) Handles CHKDevTools.CheckedChanged
+		BtnApply.Enabled = HasSettingsChanged()
 		CheckIfNeedRestart()
 	End Sub
 
 	Private Sub CHKContextMenu_CheckedChanged(sender As Object, e As EventArgs) Handles CHKContextMenu.CheckedChanged
+		BtnApply.Enabled = HasSettingsChanged()
 		CheckIfNeedRestart()
+	End Sub
+
+	Private Sub CHKInvalidCertificates_CheckedChanged(sender As Object, e As EventArgs) Handles CHKInvalidCertificates.CheckedChanged
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub CHKLogging_CheckedChanged(sender As Object, e As EventArgs) Handles CHKLogging.CheckedChanged
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub CHKDebug_CheckedChanged(sender As Object, e As EventArgs) Handles CHKDebug.CheckedChanged
+		UpdateApplyButtonState()
 	End Sub
 
 	Private Sub BtnAddWebsite_Click(sender As Object, e As EventArgs) Handles BtnAddWebsite.Click
 		Dim result = CustomDesignGUI.WebsiteInputBox("Add Website", , , True)
 		If result Is Nothing Then Return
 
-		Dim websites = GetWebsites()
-
 		Dim newId As Integer = 0
-		If websites.Count > 0 Then
-			newId = websites.Max(Function(x) x.id) + 1
+		If tempWebsite.Count > 0 Then
+			newId = tempWebsite.Max(Function(x) x.id) + 1
 		End If
 
-		websites.Add(New WebsiteItem With {
+		tempWebsite.Add(New WebsiteItem With {
 			.id = newId,
 			.name = result.Name,
 			.url = result.Url
 		})
 
-		SaveWebsites(websites)
+		websitesChanged = True
 		LoadWebsiteList()
+		UpdateApplyButtonState()
 	End Sub
 
 	Private Sub BtnEditWebsite_Click(sender As Object, e As EventArgs) Handles BtnEditWebsite.Click
@@ -251,13 +322,14 @@ Public Class SettingsForm
 		If result Is Nothing Then Return
 
 		Dim websites = GetWebsites()
-		Dim existing = websites.FirstOrDefault(Function(x) x.id = website.id)
+		Dim existing = tempWebsite.FirstOrDefault(Function(x) x.id = website.id)
 
 		If existing IsNot Nothing Then
 			existing.name = result.Name
 			existing.url = result.Url
-			SaveWebsites(websites)
+			websitesChanged = True
 			LoadWebsiteList()
+			UpdateApplyButtonState()
 		End If
 	End Sub
 
@@ -267,17 +339,17 @@ Public Class SettingsForm
 		Dim index = LVWebsites.SelectedIndices(0)
 		If index <= 0 Then Return
 
-		Dim websites = GetWebsites()
-		Dim item = websites(index)
-		websites.RemoveAt(index)
-		websites.Insert(index - 1, item)
+		Dim item = tempWebsite(index)
+		tempWebsite.RemoveAt(index)
+		tempWebsite.Insert(index - 1, item)
 
-		SaveWebsites(websites)
+		websitesChanged = True
+
 		LoadWebsiteList()
 
 		' Keep selection
 		LVWebsites.Items(index - 1).Selected = True
-
+		UpdateApplyButtonState()
 	End Sub
 
 	Private Sub BtnMoveDown_Click(sender As Object, e As EventArgs) Handles BtnMoveDown.Click
@@ -286,17 +358,17 @@ Public Class SettingsForm
 		Dim index = LVWebsites.SelectedIndices(0)
 		If index >= LVWebsites.Items.Count - 1 Then Return
 
-		Dim websites = GetWebsites()
-		Dim item = websites(index)
-		websites.RemoveAt(index)
-		websites.Insert(index + 1, item)
+		Dim item = tempWebsite(index)
+		tempWebsite.RemoveAt(index)
+		tempWebsite.Insert(index + 1, item)
 
-		SaveWebsites(websites)
+		websitesChanged = True
+
 		LoadWebsiteList()
 
 		' Keep selection
 		LVWebsites.Items(index + 1).Selected = True
-
+		UpdateApplyButtonState()
 	End Sub
 
 	Private Sub BtnRemoveWebsite_Click(sender As Object, e As EventArgs) Handles BtnRemoveWebsite.Click
@@ -319,13 +391,37 @@ Public Class SettingsForm
 		If confirm <> DialogResult.Yes Then Return
 
 		' Remove from list
-		Dim websites = GetWebsites()
-		Dim itemToRemove = websites.FirstOrDefault(Function(x) x.id = website.id)
+		Dim itemToRemove = tempWebsite.FirstOrDefault(Function(x) x.id = website.id)
 
 		If itemToRemove IsNot Nothing Then
-			websites.Remove(itemToRemove)
-			SaveWebsites(websites)
+			tempWebsite.Remove(itemToRemove)
+			websitesChanged = True
 			LoadWebsiteList()
+			UpdateApplyButtonState()
 		End If
+	End Sub
+
+	Private Sub BtnResetSettings_Click(sender As Object, e As EventArgs) Handles BtnResetSettings.Click
+		Dim result = MessageBox.Show(
+			"Are you sure you want to reset all settings to default?",
+			"Reset Settings",
+			MessageBoxButtons.YesNo,
+			MessageBoxIcon.Warning)
+
+		If result <> DialogResult.Yes Then Return
+
+		SettingsModule.ResetSettingsConfig()
+
+		Application.Restart()
+		Me.Close()
+	End Sub
+
+	Private Sub LVWebsites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LVWebsites.SelectedIndexChanged
+		Dim hasSelection As Boolean = LVWebsites.SelectedItems.Count > 0
+
+		BtnEditWebsite.Enabled = hasSelection
+		BtnRemoveWebsite.Enabled = hasSelection
+		BtnMoveUp.Enabled = hasSelection
+		BtnMoveDown.Enabled = hasSelection
 	End Sub
 End Class

@@ -400,4 +400,39 @@ Module SettingsModule
 
     End Function
 
+    '========================================
+    ' Reset Settings
+    '========================================
+
+    Public Sub ResetSettingsConfig()
+        Try
+            Theme = "system"
+            IsFullScreen = False
+            StartWithDefaultPage = True
+            OpenLastWebsite = False
+            EnableDevTools = False
+            EnableContextMenu = False
+            AllowInvalidCertificates = False
+            EnableLogging = False
+            DebugMode = False
+
+            If File.Exists(ConfigFile) Then
+                File.Delete(ConfigFile)
+            End If
+
+
+
+            CreateDefaultConfig()
+        Catch ex As Exception
+            MessageBox.Show(
+                "Unable to reset settings." & Environment.NewLine & Environment.NewLine & ex.Message,
+                "Reset Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error)
+        End Try
+    End Sub
+End Module
+
+Module Logger
+
 End Module

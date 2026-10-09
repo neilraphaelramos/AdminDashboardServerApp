@@ -15,7 +15,7 @@
         Dim setText As String = ""
 
         If updateorok Then
-            setText = "OK"
+            setText = "Add"
         Else
             setText = "Update"
         End If

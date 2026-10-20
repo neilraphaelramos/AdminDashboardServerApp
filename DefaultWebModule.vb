@@ -79,7 +79,7 @@ Module DefaultWebModule
 
         If form Is Nothing Then Return
 
-        Dim isDark As Boolean = IsDarkTheme()
+        Dim isDark As Boolean = AutoThemeModule.IsResolvedDark()
 
         Dim backgroundColor As Color
         Dim foregroundColor As Color

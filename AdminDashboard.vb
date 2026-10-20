@@ -16,6 +16,9 @@ Public Class maindashboard
 	Private PnlLoading As Panel
 	Private LblLoading As Label
 	Private loadingCreated As Boolean = False
+	' Add near the top of the class
+	Private pendingCertWarning As Boolean = False
+	Private pendingCertUrl As String = ""
 
 	Private Shared Function CreateFaviconClient() As HttpClient
 		Dim handler As New HttpClientHandler()
@@ -34,19 +37,30 @@ Public Class maindashboard
 
 	Private Sub maindashboard_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 		SettingsModule.LoadSettings()
+		LoggerModule.Info("Application started")
+		DebugModule.Trace("maindashboard_Load: settings loaded")
+
 		ApplyWinFormsTheme(Me)
 		ApplyFullScreen()
+		ApplyLoadingTheme()
 		LoadIP()
 		' Create website buttons
 		LoadWebsiteButtons()
 
 		EnsureLoadingOverlay()
 		' Start WebView2
+
+		HighlightActiveButton()
+
+		LoggerModule.Info($"Loaded {GetWebsites().Count} website(s)")
+		DebugModule.Trace("maindashboard_Load: UI ready, starting WebView2")
+
 		Initialize()
 	End Sub
 
 	Private Async Sub Initialize()
 		Try
+			LoggerModule.Info("WebView2 initializing")
 			Await WVDisplay.EnsureCoreWebView2Async(Nothing)
 			WVDisplay.CoreWebView2.Settings.AreDevToolsEnabled = SettingsModule.EnableDevTools
 			WVDisplay.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = SettingsModule.EnableDevTools
@@ -64,35 +78,52 @@ Public Class maindashboard
 			If SettingsModule.StartWithDefaultPage Then
 				CurrentLinkWeb = ""
 				AdminURLName = ""
-				SetTheme(SettingsModule.Theme)
+				SetTheme(AutoThemeModule.ResolveTheme())
 				ShowDefaultWeb(WVDisplay.CoreWebView2)
 				AddHandler WVDisplay.NavigationCompleted, AddressOf DefaultWeb_NavigationCompleted
 			ElseIf SettingsModule.OpenLastWebsite AndAlso Not String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
 				NavigateToServer()
 			Else
 				CurrentLinkWeb = ""
-				SetTheme(SettingsModule.Theme)
+				SetTheme(AutoThemeModule.ResolveTheme())
 				ShowDefaultWeb(WVDisplay.CoreWebView2)
 				AddHandler WVDisplay.NavigationCompleted, AddressOf DefaultWeb_NavigationCompleted
 			End If
+
+			LoggerModule.Info("WebView2 ready")
+			DebugModule.Trace($"StartWithDefaultPage={SettingsModule.StartWithDefaultPage}, OpenLastWebsite={SettingsModule.OpenLastWebsite}")
+
 		Catch ex As Exception
-			MessageBox.Show(ex.Message, "WebView2 Error", MessageBoxButtons.OK, MessageBoxIcon.Error
-			)
+			LoggerModule.Error("WebView2 init failed", ex)
+			MessageBox.Show(ex.Message, "WebView2 Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
 		End Try
 	End Sub
 	Public Async Sub ApplyApplicationTheme()
 		ApplyWinFormsTheme(Me)
-		SetTheme(SettingsModule.Theme)
+		SetTheme(AutoThemeModule.ResolveTheme())
 		ApplyFullScreen()
+		HighlightActiveButton()
+		PushThemeToCurrentWebView()
 		If WVDisplay.CoreWebView2 Is Nothing Then
 			Return
 		End If
 		If String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
-			Await ApplyTheme(
-			WVDisplay.CoreWebView2
-		)
+			Await ApplyTheme(WVDisplay.CoreWebView2)
 		End If
 		ErrorPageModule.ApplyThemeErrorPage(WVDisplay.CoreWebView2)
+	End Sub
+	Private Sub ApplyLoadingTheme()
+		EnsureLoadingOverlay()
+
+		Dim isDark As Boolean = AutoThemeModule.IsResolvedDark()
+
+		If isDark Then
+			PnlLoading.BackColor = Color.FromArgb(30, 30, 30)
+			LblLoading.ForeColor = Color.White
+		Else
+			PnlLoading.BackColor = Color.FromArgb(245, 245, 245)
+			LblLoading.ForeColor = Color.FromArgb(30, 30, 30)
+		End If
 	End Sub
 	Private Async Sub DefaultWeb_NavigationCompleted(sender As Object, e As CoreWebView2NavigationCompletedEventArgs)
 		If Not e.IsSuccess Then
@@ -108,23 +139,74 @@ Public Class maindashboard
 	Private Sub WebView_NavigationCompleted(sender As Object, e As CoreWebView2NavigationCompletedEventArgs)
 		HideLoading()
 		isAuthenticating = False
+
 		If e.IsSuccess Then Return
+
 		If e.WebErrorStatus = CoreWebView2WebErrorStatus.ValidAuthenticationCredentialsRequired OrElse
 			e.WebErrorStatus = CoreWebView2WebErrorStatus.ValidProxyAuthenticationRequired Then
 			Return
 		End If
+
 		If isAuthenticating Then Return
+
 		Dim core As CoreWebView2 = TryCast(sender, CoreWebView2)
 		If core Is Nothing Then Return
+
 		Dim currentSource As String = core.Source
-		If currentSource.Contains("Error") OrElse currentSource.Contains("index.html") Then
+		If currentSource.Contains("Error") OrElse
+		   currentSource.Contains("index.html") OrElse
+		   currentSource.Contains("certificate-warning") OrElse
+		   currentSource.StartsWith("data:", StringComparison.OrdinalIgnoreCase) Then
 			Return
 		End If
+
+		If pendingCertWarning Then
+			pendingCertWarning = False
+			Dim url = If(String.IsNullOrWhiteSpace(CurrentLinkWeb), pendingCertUrl, CurrentLinkWeb)
+			LoggerModule.Warn($"Showing certificate warning for: {url} (status={e.WebErrorStatus})")
+			WarningPageModule.ShowCertificateWarning(core, url, AutoThemeModule.ResolveTheme())
+			Return
+		End If
+
+		' Certificate → warning page
+		Dim isCertError As Boolean =
+			e.WebErrorStatus = CoreWebView2WebErrorStatus.CertificateCommonNameIsIncorrect OrElse
+			e.WebErrorStatus = CoreWebView2WebErrorStatus.CertificateExpired OrElse
+			e.WebErrorStatus = CoreWebView2WebErrorStatus.ClientCertificateContainsErrors OrElse
+			e.WebErrorStatus = CoreWebView2WebErrorStatus.CertificateRevoked OrElse
+			e.WebErrorStatus = CoreWebView2WebErrorStatus.CertificateIsInvalid
+
+		If isCertError Then
+			LoggerModule.Warn($"Certificate warning: {CurrentLinkWeb} ({e.WebErrorStatus})")
+			WarningPageModule.ShowCertificateWarning(core, CurrentLinkWeb, AutoThemeModule.ResolveTheme())
+			Return
+		End If
+
+		' Other failures → error page
+		LoggerModule.Warn($"Navigation failed: {CurrentLinkWeb} status={e.WebErrorStatus}")
 		ErrorPageModule.Show(core, CurrentLinkWeb)
 	End Sub
 	Private Sub WebView_WebMessageReceived(sender As Object, e As CoreWebView2WebMessageReceivedEventArgs)
 		Dim message As String = e.TryGetWebMessageAsString()
+		If String.IsNullOrWhiteSpace(message) Then Return
+
 		ErrorPageModule.HandleWebMessage(message)
+
+		Try
+			If message.Contains("openSettings") Then
+				SettingsForm.ShowDialog()
+			ElseIf message.Contains("retry") Then
+				If Not String.IsNullOrWhiteSpace(CurrentLinkWeb) Then
+					If currentWebView IsNot Nothing AndAlso currentWebView.CoreWebView2 IsNot Nothing Then
+						currentWebView.CoreWebView2.Navigate(CurrentLinkWeb)
+					ElseIf WVDisplay.CoreWebView2 IsNot Nothing Then
+						WVDisplay.CoreWebView2.Navigate(CurrentLinkWeb)
+					End If
+				End If
+			End If
+		Catch ex As Exception
+			LoggerModule.Error("WebMessage handling failed", ex)
+		End Try
 	End Sub
 	Private Sub NavigateToServer()
 		If WVDisplay.CoreWebView2 Is Nothing Then
@@ -142,6 +224,26 @@ Public Class maindashboard
 		Else
 			ExitFullScreen()
 		End If
+	End Sub
+
+	Private Sub PushThemeToCurrentWebView()
+		Dim theme As String = AutoThemeModule.ResolveTheme().ToLower()  ' or SettingsModule.Theme
+		If theme = "system" Then
+			theme = If(AutoThemeModule.IsResolvedDark(), "dark", "light")
+		End If
+
+		Dim json As String =
+		"{""action"":""setTheme"",""theme"":""" & theme & """}"
+
+		Try
+			If currentWebView IsNot Nothing AndAlso currentWebView.CoreWebView2 IsNot Nothing Then
+				currentWebView.CoreWebView2.PostWebMessageAsString(json)
+			End If
+			If WVDisplay.CoreWebView2 IsNot Nothing Then
+				WVDisplay.CoreWebView2.PostWebMessageAsString(json)
+			End If
+		Catch
+		End Try
 	End Sub
 
 	Private Sub EnsureLoadingOverlay()
@@ -219,12 +321,16 @@ Public Class maindashboard
 		End If
 	End Sub
 	Private Sub WebView2_ServerCertificateErrorDetected(sender As Object, e As CoreWebView2ServerCertificateErrorDetectedEventArgs)
-		If Not String.IsNullOrWhiteSpace(CurrentLinkWeb) AndAlso e.RequestUri.StartsWith(CurrentLinkWeb, StringComparison.OrdinalIgnoreCase) Then
-			e.Action =
-				CoreWebView2ServerCertificateErrorAction.AlwaysAllow
+		If SettingsModule.AllowInvalidCertificates Then
+			e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow
+			LoggerModule.Warn($"Allowed invalid certificate: {e.RequestUri}")
+			pendingCertWarning = False
+			DebugModule.Trace($"Cert error allowed: {e.RequestUri}")
 		Else
-			e.Action =
-				CoreWebView2ServerCertificateErrorAction.Cancel
+			e.Action = CoreWebView2ServerCertificateErrorAction.Cancel
+			pendingCertWarning = True
+			pendingCertUrl = e.RequestUri
+			LoggerModule.Warn($"Allowed invalid certificate: {e.RequestUri}")
 		End If
 	End Sub
 	Public Sub LoadWebsiteButtons()
@@ -380,37 +486,30 @@ Public Class maindashboard
 		wv.BringToFront()
 		ShowLoading(AdminURLName)
 		wv.CoreWebView2.Navigate(url)
+		LoggerModule.Info($"Open website: {url}")
+		DebugModule.Trace($"ShowWebsite: create WebView for {url}")
 	End Function
 	Public Sub HighlightActiveButton()
-		Dim setDark As String = SettingsModule.Theme
-		Dim normalBack As Color
-		Dim normalFore As Color
-		If setDark = "system" Or setDark = "dark" Then
-			normalBack = Color.FromArgb(45, 45, 45)
-			normalFore = Color.White
-		Else
-			normalBack = SystemColors.Control
-			normalFore = SystemColors.ControlText
-		End If
+		Dim isDark As Boolean = AutoThemeModule.IsResolvedDark()
+
+		Dim normalBack As Color = If(isDark, Color.FromArgb(45, 45, 45), SystemColors.Control)
+		Dim normalFore As Color = If(isDark, Color.White, SystemColors.ControlText)
+
+		' Form chrome (once, not inside the loop)
+		Me.BackColor = If(isDark, Color.FromArgb(30, 30, 30), SystemColors.Control)
+		PnlTabs.BackColor = If(isDark, Color.FromArgb(30, 30, 30), SystemColors.Control)
+
 		For Each control As Control In PnlTabs.Controls
 			Dim btn As Button = TryCast(control, Button)
-			If btn Is Nothing Then
-				Continue For
-			End If
-			Dim website As WebsiteItem =
-				TryCast(btn.Tag, WebsiteItem)
-			If website Is Nothing Then
-				Continue For
-			End If
-			If String.Equals(
-				website.url,
-				CurrentLinkWeb,
-				StringComparison.OrdinalIgnoreCase) Then
-				' Active tab
+			If btn Is Nothing Then Continue For
+
+			Dim website As WebsiteItem = TryCast(btn.Tag, WebsiteItem)
+			If website Is Nothing Then Continue For
+
+			If String.Equals(website.url, CurrentLinkWeb, StringComparison.OrdinalIgnoreCase) Then
 				btn.BackColor = Color.DodgerBlue
 				btn.ForeColor = Color.White
 			Else
-				' Normal tab
 				btn.BackColor = normalBack
 				btn.ForeColor = normalFore
 			End If
@@ -528,6 +627,7 @@ Public Class maindashboard
 				Exit For
 			End If
 		Next
+		LoggerModule.Info($"Reload website: {url}")
 	End Function
 
 	Private Async Sub LoadFaviconAsync(btn As Button, websiteUrl As String)
@@ -609,8 +709,7 @@ Public Class maindashboard
 	Private Sub MSAddIP_Click(
 		sender As Object,
 		e As EventArgs) Handles MSAddIP.Click
-		Dim result As CustomDesignGUI.WebsiteInputResult =
-			CustomDesignGUI.WebsiteInputBox("Add Website",,, True)
+		Dim result As CustomDesignGUI.WebsiteInputResult = CustomDesignGUI.WebsiteInputBox("Add Website",,, True, AutoThemeModule.ResolveTheme())
 		If result Is Nothing Then
 			Return
 		End If
@@ -646,15 +745,17 @@ Public Class maindashboard
 		SettingsForm.ShowDialog()
 	End Sub
 	Private Sub MSExit_Click(sender As Object, e As EventArgs) Handles MSExit.Click
+		LoggerModule.Info("Application exit requested")
 		Dim result = CustomDesignGUI.ThemedMessageBox(
 			"Are you sure you want to exit?",
 			"Exit",
 			MessageBoxButtons.YesNo,
 			MessageBoxIcon.Question,
-			themeSet:=SettingsModule.Theme
+			themeSet:=AutoThemeModule.ResolveTheme()
 		)
 		If result = DialogResult.Yes Then
 			Application.Exit()
 		End If
+		LoggerModule.Info("Application exit!")
 	End Sub
 End Class

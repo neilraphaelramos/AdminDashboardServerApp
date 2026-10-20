@@ -10,15 +10,34 @@
     End Class
 
 
-    Public Shared Function WebsiteInputBox(title As String, Optional defaultname As String = "", Optional defaultUrl As String = "", Optional updateorok As Boolean = False) As WebsiteInputResult
+    Public Shared Function WebsiteInputBox(title As String, Optional defaultname As String = "", Optional defaultUrl As String = "", Optional updateorok As Boolean = False, Optional themeSet As String = Nothing) As WebsiteInputResult
 
         Dim setText As String = ""
+
+        Dim theme As String = If(String.IsNullOrWhiteSpace(themeSet), AutoThemeModule.ResolveTheme(), themeSet).ToLower()
+
+        Dim isDark As Boolean
+
+        If theme = "dark" Then
+            isDark = True
+        ElseIf theme = "light" Then
+            isDark = False
+        Else
+            isDark = AutoThemeModule.IsResolvedDark()
+        End If
 
         If updateorok Then
             setText = "Add"
         Else
             setText = "Update"
         End If
+
+        Dim formBack As Color = If(isDark, Color.FromArgb(30, 30, 30), Color.FromArgb(245, 245, 245))
+        Dim formFore As Color = If(isDark, Color.White, Color.FromArgb(30, 30, 30))
+        Dim inputBack As Color = If(isDark, Color.FromArgb(45, 45, 45), Color.White)
+        Dim inputFore As Color = If(isDark, Color.White, Color.FromArgb(30, 30, 30))
+        Dim btnBack As Color = If(isDark, Color.FromArgb(60, 60, 60), Color.FromArgb(230, 230, 230))
+        Dim btnBorder As Color = If(isDark, Color.FromArgb(80, 80, 80), Color.FromArgb(180, 180, 180))
 
         Using frm As New Form()
 
@@ -28,21 +47,21 @@
             frm.ClientSize = New Size(360, 195)
             frm.MinimizeBox = False
             frm.MaximizeBox = False
-            frm.BackColor = Color.FromArgb(30, 30, 30)
-            frm.ForeColor = Color.White
+            frm.BackColor = formBack
+            frm.ForeColor = formFore
             frm.ShowInTaskbar = False
 
             Dim lblname As New Label()
             lblname.Text = "Name of Website"
             lblname.Location = New Point(15, 15)
             lblname.AutoSize = True
-            lblname.ForeColor = Color.White
+            lblname.ForeColor = formFore
 
             Dim txtname As New TextBox()
             txtname.Location = New Point(15, 40)
             txtname.Width = 330
-            txtname.BackColor = Color.FromArgb(45, 45, 45)
-            txtname.ForeColor = Color.White
+            txtname.BackColor = inputBack
+            txtname.ForeColor = inputFore
             txtname.BorderStyle = BorderStyle.FixedSingle
             txtname.Text = defaultname
 
@@ -50,13 +69,13 @@
             lblUrl.Text = "Web URL"
             lblUrl.Location = New Point(15, 75)
             lblUrl.AutoSize = True
-            lblUrl.ForeColor = Color.White
+            lblUrl.ForeColor = formFore
 
             Dim txtUrl As New TextBox()
             txtUrl.Location = New Point(15, 100)
             txtUrl.Width = 330
-            txtUrl.BackColor = Color.FromArgb(45, 45, 45)
-            txtUrl.ForeColor = Color.White
+            txtUrl.BackColor = inputBack
+            txtUrl.ForeColor = inputFore
             txtUrl.BorderStyle = BorderStyle.FixedSingle
             txtUrl.Text = defaultUrl
 
@@ -64,20 +83,20 @@
             btnOK.Text = setText
             btnOK.Location = New Point(180, 150)
             btnOK.Size = New Size(75, 30)
-            btnOK.BackColor = Color.FromArgb(60, 60, 60)
-            btnOK.ForeColor = Color.White
+            btnOK.BackColor = inputBack
+            btnOK.ForeColor = formFore
             btnOK.FlatStyle = FlatStyle.Flat
-            btnOK.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80)
+            btnOK.FlatAppearance.BorderColor = btnBorder
             btnOK.DialogResult = DialogResult.OK
 
             Dim btnCancel As New Button()
             btnCancel.Text = "Cancel"
             btnCancel.Location = New Point(270, 150)
             btnCancel.Size = New Size(75, 30)
-            btnCancel.BackColor = Color.FromArgb(60, 60, 60)
-            btnCancel.ForeColor = Color.White
+            btnCancel.BackColor = inputBack
+            btnCancel.ForeColor = formFore
             btnCancel.FlatStyle = FlatStyle.Flat
-            btnCancel.FlatAppearance.BorderColor = Color.FromArgb(80, 80, 80)
+            btnCancel.FlatAppearance.BorderColor = btnBorder
             btnCancel.DialogResult = DialogResult.Cancel
 
             frm.Controls.Add(lblname)

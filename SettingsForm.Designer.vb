@@ -62,6 +62,13 @@ Partial Class SettingsForm
 		Label12 = New Label()
 		CHKFullScreen = New CheckBox()
 		TPAppearances = New TabPage()
+		PNLTimeSet = New Panel()
+		Label13 = New Label()
+		Label14 = New Label()
+		DTPDarkFrom = New DateTimePicker()
+		DTPLightFrom = New DateTimePicker()
+		Label4 = New Label()
+		CHKAutoTheme = New CheckBox()
 		TPWebView = New TabPage()
 		lblRestartInfo = New Label()
 		TPWebsites = New TabPage()
@@ -71,6 +78,7 @@ Partial Class SettingsForm
 		CTCSettings.SuspendLayout()
 		TPGeneral.SuspendLayout()
 		TPAppearances.SuspendLayout()
+		PNLTimeSet.SuspendLayout()
 		TPWebView.SuspendLayout()
 		TPWebsites.SuspendLayout()
 		TPAdvanced.SuspendLayout()
@@ -369,7 +377,7 @@ Partial Class SettingsForm
 		' lblDescription
 		' 
 		lblDescription.AutoSize = True
-		lblDescription.Location = New Point(22, 38)
+		lblDescription.Location = New Point(26, 41)
 		lblDescription.Name = "lblDescription"
 		lblDescription.Size = New Size(186, 15)
 		lblDescription.TabIndex = 1
@@ -379,7 +387,7 @@ Partial Class SettingsForm
 		' 
 		lblTitle.AutoSize = True
 		lblTitle.Font = New Font("Segoe UI", 18F, FontStyle.Bold)
-		lblTitle.Location = New Point(20, 10)
+		lblTitle.Location = New Point(12, 9)
 		lblTitle.Name = "lblTitle"
 		lblTitle.Size = New Size(106, 32)
 		lblTitle.TabIndex = 0
@@ -473,6 +481,9 @@ Partial Class SettingsForm
 		' 
 		' TPAppearances
 		' 
+		TPAppearances.Controls.Add(PNLTimeSet)
+		TPAppearances.Controls.Add(Label4)
+		TPAppearances.Controls.Add(CHKAutoTheme)
 		TPAppearances.Controls.Add(lblTheme)
 		TPAppearances.Controls.Add(CMBTheme)
 		TPAppearances.Controls.Add(lblThemeDescription)
@@ -483,6 +494,72 @@ Partial Class SettingsForm
 		TPAppearances.TabIndex = 1
 		TPAppearances.Text = "Appearance"
 		TPAppearances.UseVisualStyleBackColor = True
+		' 
+		' PNLTimeSet
+		' 
+		PNLTimeSet.Controls.Add(Label13)
+		PNLTimeSet.Controls.Add(Label14)
+		PNLTimeSet.Controls.Add(DTPDarkFrom)
+		PNLTimeSet.Controls.Add(DTPLightFrom)
+		PNLTimeSet.Location = New Point(9, 134)
+		PNLTimeSet.Name = "PNLTimeSet"
+		PNLTimeSet.Size = New Size(298, 63)
+		PNLTimeSet.TabIndex = 10
+		' 
+		' Label13
+		' 
+		Label13.AutoSize = True
+		Label13.Location = New Point(3, 10)
+		Label13.Name = "Label13"
+		Label13.Size = New Size(90, 15)
+		Label13.TabIndex = 8
+		Label13.Text = "Dark Hour Time"
+		' 
+		' Label14
+		' 
+		Label14.AutoSize = True
+		Label14.Location = New Point(132, 10)
+		Label14.Name = "Label14"
+		Label14.Size = New Size(93, 15)
+		Label14.TabIndex = 9
+		Label14.Text = "Light Hour Time"
+		' 
+		' DTPDarkFrom
+		' 
+		DTPDarkFrom.Format = DateTimePickerFormat.Time
+		DTPDarkFrom.Location = New Point(3, 28)
+		DTPDarkFrom.Name = "DTPDarkFrom"
+		DTPDarkFrom.ShowUpDown = True
+		DTPDarkFrom.Size = New Size(117, 23)
+		DTPDarkFrom.TabIndex = 6
+		' 
+		' DTPLightFrom
+		' 
+		DTPLightFrom.Format = DateTimePickerFormat.Time
+		DTPLightFrom.Location = New Point(131, 27)
+		DTPLightFrom.Name = "DTPLightFrom"
+		DTPLightFrom.ShowUpDown = True
+		DTPLightFrom.Size = New Size(117, 23)
+		DTPLightFrom.TabIndex = 7
+		' 
+		' Label4
+		' 
+		Label4.AutoSize = True
+		Label4.Location = New Point(9, 116)
+		Label4.Name = "Label4"
+		Label4.Size = New Size(254, 15)
+		Label4.TabIndex = 5
+		Label4.Text = "This opion is for auto theme based on set time."
+		' 
+		' CHKAutoTheme
+		' 
+		CHKAutoTheme.AutoSize = True
+		CHKAutoTheme.Location = New Point(9, 94)
+		CHKAutoTheme.Name = "CHKAutoTheme"
+		CHKAutoTheme.Size = New Size(91, 19)
+		CHKAutoTheme.TabIndex = 4
+		CHKAutoTheme.Text = "Auto Theme"
+		CHKAutoTheme.UseVisualStyleBackColor = True
 		' 
 		' TPWebView
 		' 
@@ -561,6 +638,8 @@ Partial Class SettingsForm
 		TPGeneral.PerformLayout()
 		TPAppearances.ResumeLayout(False)
 		TPAppearances.PerformLayout()
+		PNLTimeSet.ResumeLayout(False)
+		PNLTimeSet.PerformLayout()
 		TPWebView.ResumeLayout(False)
 		TPWebView.PerformLayout()
 		TPWebsites.ResumeLayout(False)
@@ -613,4 +692,11 @@ Partial Class SettingsForm
 	Friend WithEvents Label12 As Label
 	Friend WithEvents CHKFullScreen As CheckBox
 	Friend WithEvents lblRestartInfo As Label
+	Friend WithEvents Label4 As Label
+	Friend WithEvents CHKAutoTheme As CheckBox
+	Friend WithEvents Label13 As Label
+	Friend WithEvents DTPLightFrom As DateTimePicker
+	Friend WithEvents DTPDarkFrom As DateTimePicker
+	Friend WithEvents Label14 As Label
+	Friend WithEvents PNLTimeSet As Panel
 End Class

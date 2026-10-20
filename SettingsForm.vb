@@ -45,7 +45,12 @@ Public Class SettingsForm
 		CHKInvalidCertificates.Checked = SettingsModule.AllowInvalidCertificates
 		CHKLogging.Checked = SettingsModule.EnableLogging
 		CHKDebug.Checked = SettingsModule.DebugMode
-
+		CHKAutoTheme.Checked = SettingsModule.AutoTheme
+		'CHKAutoTheme.Enabled = False
+		CMBTheme.Enabled = Not SettingsModule.AutoTheme
+		DTPDarkFrom.Value = DateTime.Today.AddHours(SettingsModule.AutoThemeDarkHour)
+		DTPLightFrom.Value = DateTime.Today.AddHours(SettingsModule.AutoThemeLightHour)
+		PNLTimeSet.Visible = SettingsModule.AutoTheme
 		tempWebsite = GetWebsites()
 		websitesChanged = False
 		LoadWebsiteList()
@@ -89,7 +94,7 @@ Public Class SettingsForm
 	' DETERMINE CURRENT THEME
 	'========================================================
 	Private Function IsCurrentDarkTheme() As Boolean
-		Select Case SettingsModule.Theme.ToLower()
+		Select Case AutoThemeModule.ResolveTheme()
 			Case "dark"
 				Return True
 			Case "light"
@@ -153,6 +158,9 @@ Public Class SettingsForm
 		If CMBTheme.SelectedItem IsNot Nothing Then
 			SettingsModule.Theme = CMBTheme.SelectedItem.ToString().ToLower()
 		End If
+		SettingsModule.AutoTheme = CHKAutoTheme.Checked
+		SettingsModule.AutoThemeDarkHour = DTPDarkFrom.Value.Hour
+		SettingsModule.AutoThemeLightHour = DTPLightFrom.Value.Hour
 
 		'------------------------------------------
 		' WebView
@@ -240,6 +248,9 @@ Public Class SettingsForm
 		If CHKInvalidCertificates.Checked <> SettingsModule.AllowInvalidCertificates Then Return True
 		If CHKLogging.Checked <> SettingsModule.EnableLogging Then Return True
 		If CHKDebug.Checked <> SettingsModule.DebugMode Then Return True
+		If CHKAutoTheme.Checked <> SettingsModule.AutoTheme Then Return True
+		If DTPDarkFrom.Value.Hour <> SettingsModule.AutoThemeDarkHour Then Return True
+		If DTPLightFrom.Value.Hour <> SettingsModule.AutoThemeLightHour Then Return True
 
 		Return False
 	End Function
@@ -423,5 +434,19 @@ Public Class SettingsForm
 		BtnRemoveWebsite.Enabled = hasSelection
 		BtnMoveUp.Enabled = hasSelection
 		BtnMoveDown.Enabled = hasSelection
+	End Sub
+
+	Private Sub CHKAutoTheme_CheckedChanged(sender As Object, e As EventArgs) Handles CHKAutoTheme.CheckedChanged
+		PNLTimeSet.Visible = CHKAutoTheme.Checked
+		CMBTheme.Enabled = Not CHKAutoTheme.Checked
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub DTPDarkFrom_ValueChanged(sender As Object, e As EventArgs) Handles DTPDarkFrom.ValueChanged
+		UpdateApplyButtonState()
+	End Sub
+
+	Private Sub DTPLightFrom_ValueChanged(sender As Object, e As EventArgs) Handles DTPLightFrom.ValueChanged
+		UpdateApplyButtonState()
 	End Sub
 End Class

@@ -55,7 +55,7 @@ Module ErrorPageModule
 	End Function
 
 	Private Function IsDarkTheme() As Boolean
-		Select Case SettingsModule.Theme.ToLower()
+		Select Case AutoThemeModule.ResolveTheme()
 			Case "dark"
 				Return True
 			Case "light"

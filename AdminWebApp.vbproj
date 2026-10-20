@@ -57,6 +57,9 @@
 			<Generator>MyApplicationCodeGenerator</Generator>
 			<LastGenOutput>Application.Designer.vb</LastGenOutput>
 		</None>
+		<None Update="Warning\certificate-warning.html">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>

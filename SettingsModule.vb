@@ -26,11 +26,17 @@ Module SettingsModule
 
     Public Property EnableContextMenu As Boolean = False
 
-    Public Property AllowInvalidCertificates As Boolean = False
+    Public Property AllowInvalidCertificates As Boolean = True
 
     Public Property EnableLogging As Boolean = False
 
     Public Property DebugMode As Boolean = False
+
+    Public Property AutoTheme As Boolean = False
+
+    Public Property AutoThemeDarkHour As Integer = 18
+
+    Public Property AutoThemeLightHour As Integer = 6
 
 
     '========================================
@@ -113,6 +119,9 @@ Module SettingsModule
                         "system"
                     )
 
+                AutoTheme = GetBoolean(appearance, "AutoTheme", False)
+                AutoThemeDarkHour = GetInteger(appearance, "AutoThemeDarkHour", 18)
+                AutoThemeLightHour = GetInteger(appearance, "AutoThemeLightHour", 18)
             End If
 
 
@@ -237,7 +246,10 @@ Module SettingsModule
                 New XElement(
                     "Theme",
                     Theme
-                )
+                ),
+                New XElement("AutoTheme", AutoTheme),
+                New XElement("AutoThemeDarkHour", AutoThemeDarkHour),
+                New XElement("AutoThemeLightHour", AutoThemeLightHour)
             )
 
             settings.Add(appearance)
@@ -331,11 +343,17 @@ Module SettingsModule
 
         EnableContextMenu = False
 
-        AllowInvalidCertificates = False
+        AllowInvalidCertificates = True
 
         EnableLogging = False
 
         DebugMode = False
+
+        AutoTheme = False
+
+        AutoThemeDarkHour = 18
+
+        AutoThemeLightHour = 6
 
         SaveSettings()
 
@@ -400,6 +418,25 @@ Module SettingsModule
 
     End Function
 
+    Private Function GetInteger(parent As XElement, name As String, defaultValue As Integer) As Integer
+        Dim element As XElement = parent.Element(name)
+        If element Is Nothing Then Return defaultValue
+        Dim result As Integer
+        If Integer.TryParse(element.Value, result) Then Return result
+        Return defaultValue
+    End Function
+
+    Public Function IsAutoThemeDarkNow() As Boolean
+        Dim hour As Integer = DateTime.Now.Hour
+        ' Example: Dark from 18:00 to 05:59, Light from 06:00 to 17:59
+        If AutoThemeDarkHour > AutoThemeLightHour Then
+            Return hour >= AutoThemeDarkHour OrElse hour < AutoThemeLightHour
+        Else
+            Return hour >= AutoThemeDarkHour AndAlso hour < AutoThemeLightHour
+        End If
+    End Function
+
+
     '========================================
     ' Reset Settings
     '========================================
@@ -412,9 +449,12 @@ Module SettingsModule
             OpenLastWebsite = False
             EnableDevTools = False
             EnableContextMenu = False
-            AllowInvalidCertificates = False
+            AllowInvalidCertificates = True
             EnableLogging = False
             DebugMode = False
+            AutoTheme = False
+            AutoThemeDarkHour = 18
+            AutoThemeLightHour = 6
 
             If File.Exists(ConfigFile) Then
                 File.Delete(ConfigFile)
@@ -431,8 +471,4 @@ Module SettingsModule
                 MessageBoxIcon.Error)
         End Try
     End Sub
-End Module
-
-Module Logger
-
 End Module

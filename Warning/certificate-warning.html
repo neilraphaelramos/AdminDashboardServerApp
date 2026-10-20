@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Warning</title>
+    <style>
+        :root {
+            --bg: #121212;
+            --card: #1e1e1e;
+            --border: #333;
+            --text: #e8e8e8;
+            --muted: #b0b0b0;
+            --hint: #777;
+            --url-bg: #2a2a2a;
+            --url: #7ec8ff;
+            --title: #ffb347;
+            --btn: #1e90ff;
+            --btn-hover: #3aa0ff;
+            --btn2: #333;
+            --btn2-hover: #444;
+            --btn2-text: #ddd;
+            --icon-bg: rgba(255, 179, 71, 0.12);
+        }
+
+        body.light {
+            --bg: #f0f0f0;
+            --card: #ffffff;
+            --border: #ddd;
+            --text: #222;
+            --muted: #555;
+            --hint: #888;
+            --url-bg: #f3f3f3;
+            --url: #0066cc;
+            --title: #c67c00;
+            --btn: #1e90ff;
+            --btn-hover: #0070e0;
+            --btn2: #e8e8e8;
+            --btn2-hover: #ddd;
+            --btn2-text: #333;
+            --icon-bg: rgba(255, 179, 71, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", system-ui, sans-serif;
+        }
+
+        .card {
+            width: min(440px, 92vw);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px 24px 22px;
+            text-align: center;
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: rgba(255, 179, 71, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .icon span {
+            display: block;
+            line-height: 1;
+            transform: translateY(-4px);
+            /* fine-tune if still slightly high/low */
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            color: var(--title);
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 0.92rem;
+            line-height: 1.55;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .url {
+            display: block;
+            margin: 8px 0 18px;
+            padding: 10px 12px;
+            background: var(--url-bg);
+            border-radius: 8px;
+            color: var(--url);
+            font-size: 0.82rem;
+            word-break: break-all;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--btn);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--btn-hover);
+        }
+
+        .btn-secondary {
+            background: var(--btn2);
+            color: var(--btn2-text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--btn2-hover);
+        }
+
+        .hint {
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: var(--hint);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="icon"><span>⚠️</span></div>
+        <h1>Certificate Warning</h1>
+        <p>The connection is not trusted.<br>
+            The HTTPS certificate is invalid, expired, or self-signed.</p>
+        <span class="url" id="siteUrl"></span>
+        <p>If this is a device you trust, enable <b>Allow Invalid Certificates</b> in Settings, then reload.</p>
+        <div class="actions">
+            <button class="btn-primary" id="btnSettings">Open Settings</button>
+            <button class="btn-secondary" id="btnRetry">Retry</button>
+        </div>
+        <p class="hint">Do not ignore this warning on public websites.</p>
+    </div>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const url = params.get("url") || "";
+            let theme = (params.get("theme") || "dark").toLowerCase();
+
+            function applyTheme(t) {
+                theme = (t || "dark").toLowerCase();
+                document.body.classList.toggle("light", theme === "light");
+            }
+
+            applyTheme(theme);
+
+            const el = document.getElementById("siteUrl");
+            if (el && url) el.textContent = url;
+
+            // Real-time theme from the app
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.addEventListener("message", function (event) {
+                    try {
+                        const data = typeof event.data === "string"
+                            ? JSON.parse(event.data)
+                            : event.data;
+
+                        if (data && data.action === "setTheme") {
+                            applyTheme(data.theme);
+                        }
+                    } catch (e) { }
+                });
+            }
+
+            document.getElementById("btnSettings")?.addEventListener("click", function () {
+                window.chrome?.webview?.postMessage(JSON.stringify({ action: "openSettings" }));
+            });
+
+            document.getElementById("btnRetry")?.addEventListener("click", function () {
+                window.chrome?.webview?.postMessage(JSON.stringify({ action: "retry", url: url }));
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -10,7 +10,7 @@ Module DefaultWebModule
 
     Public Function GetDefaultWebPath() As String
         Return Path.Combine(
-            Application.StartupPath, "Default Web", "index.html"
+            Application.StartupPath, DataPaths.DefaultWebFolder, "index.html"
         )
     End Function
 

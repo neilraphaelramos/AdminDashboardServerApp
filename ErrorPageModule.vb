@@ -3,7 +3,7 @@ Imports Microsoft.Web.WebView2.Core
 
 Module ErrorPageModule
 
-	Private ReadOnly ErrorFolder As String = Path.Combine(Application.StartupPath, "Error")
+	Private ReadOnly ErrorFolder As String = DataPaths.ErrorFolder
 	Private ReadOnly ErrorHtmlPath As String = Path.Combine(ErrorFolder, "index.html")
 
 	Public Sub Show(webView As CoreWebView2, failedUrl As String, Optional errorMessage As String = "took too long to respond")

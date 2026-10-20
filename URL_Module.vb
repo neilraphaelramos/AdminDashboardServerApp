@@ -12,12 +12,7 @@ End Class
 
 Module URL_Module
 
-    Private ReadOnly ConfigFile As String =
-        Path.Combine(
-            Application.StartupPath,
-            "server.json"
-        )
-
+    Private ReadOnly ServerFile As String = Path.Combine(Application.StartupPath, DataPaths.ServerFile)
 
     Public Property CurrentLinkWeb As String = ""
 
@@ -30,7 +25,7 @@ Module URL_Module
 
     Public Function GetWebsites() As List(Of WebsiteItem)
 
-        If Not File.Exists(ConfigFile) Then
+        If Not File.Exists(ServerFile) Then
 
             Return New List(Of WebsiteItem)
 
@@ -39,7 +34,7 @@ Module URL_Module
         Try
 
             Dim json As String =
-                File.ReadAllText(ConfigFile)
+                File.ReadAllText(ServerFile)
 
             If String.IsNullOrWhiteSpace(json) Then
 
@@ -87,7 +82,7 @@ Module URL_Module
                 )
 
             File.WriteAllText(
-                ConfigFile,
+                ServerFile,
                 output
             )
 

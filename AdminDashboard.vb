@@ -19,6 +19,8 @@ Public Class maindashboard
 	' Add near the top of the class
 	Private pendingCertWarning As Boolean = False
 	Private pendingCertUrl As String = ""
+	Private isNavigating As Boolean = False
+	Private navigationGeneration As Integer = 0
 
 	Private Shared Function CreateFaviconClient() As HttpClient
 		Dim handler As New HttpClientHandler()
@@ -44,6 +46,12 @@ Public Class maindashboard
 		ApplyFullScreen()
 		ApplyLoadingTheme()
 		LoadIP()
+
+		If SettingsModule.StartWithDefaultPage OrElse Not SettingsModule.OpenLastWebsite Then
+			CurrentLinkWeb = ""
+			AdminURLName = ""
+		End If
+
 		' Create website buttons
 		LoadWebsiteButtons()
 
@@ -52,10 +60,10 @@ Public Class maindashboard
 
 		HighlightActiveButton()
 
+		Initialize()
+
 		LoggerModule.Info($"Loaded {GetWebsites().Count} website(s)")
 		DebugModule.Trace("maindashboard_Load: UI ready, starting WebView2")
-
-		Initialize()
 	End Sub
 
 	Private Async Sub Initialize()
@@ -137,6 +145,7 @@ Public Class maindashboard
 	)
 	End Sub
 	Private Sub WebView_NavigationCompleted(sender As Object, e As CoreWebView2NavigationCompletedEventArgs)
+		isNavigating = False
 		HideLoading()
 		isAuthenticating = False
 
@@ -277,6 +286,7 @@ Public Class maindashboard
 
 	Private Sub ShowLoading(Optional siteName As String = "")
 		EnsureLoadingOverlay()
+		ApplyLoadingTheme()
 
 		If String.IsNullOrWhiteSpace(siteName) Then
 			LblLoading.Text = "Connecting, please wait..."
@@ -442,6 +452,8 @@ Public Class maindashboard
 		Dim website As WebsiteItem = TryCast(btn.Tag, WebsiteItem)
 		If website Is Nothing Then Return
 
+		If isNavigating Then Return
+
 		CurrentLinkWeb = website.url
 		AdminURLName = website.name
 
@@ -456,22 +468,38 @@ Public Class maindashboard
 	End Sub
 
 	Private Async Function ShowWebsite(url As String) As Task
+		If isNavigating Then Return
+
+		isNavigating = True
+		navigationGeneration += 1
+		Dim myGen As Integer = navigationGeneration
+
 		If currentWebView IsNot Nothing Then
 			currentWebView.Visible = False
 		End If
+
 		If webViews.ContainsKey(url) Then
 			currentWebView = webViews(url)
 			currentWebView.Visible = True
 			currentWebView.BringToFront()
+			isNavigating = False
 			HideLoading()
 			Return
 		End If
+
 		Dim wv As New Microsoft.Web.WebView2.WinForms.WebView2()
 		wv.Dock = DockStyle.Fill
 		wv.Visible = False
 		Dim parent = If(WVDisplay.Parent, Me)
 		parent.Controls.Add(wv)
 		Await wv.EnsureCoreWebView2Async(Nothing)
+
+		If myGen <> navigationGeneration Then
+			parent.Controls.Remove(wv)
+			wv.Dispose()
+			Return
+		End If
+
 		wv.CoreWebView2.Settings.AreDevToolsEnabled = SettingsModule.EnableDevTools
 		wv.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = SettingsModule.EnableDevTools
 		wv.CoreWebView2.Settings.AreDefaultContextMenusEnabled = SettingsModule.EnableContextMenu
@@ -499,6 +527,8 @@ Public Class maindashboard
 		Me.BackColor = If(isDark, Color.FromArgb(30, 30, 30), SystemColors.Control)
 		PnlTabs.BackColor = If(isDark, Color.FromArgb(30, 30, 30), SystemColors.Control)
 
+		Dim hasCurrent As Boolean = Not String.IsNullOrWhiteSpace(CurrentLinkWeb)
+
 		For Each control As Control In PnlTabs.Controls
 			Dim btn As Button = TryCast(control, Button)
 			If btn Is Nothing Then Continue For
@@ -506,7 +536,7 @@ Public Class maindashboard
 			Dim website As WebsiteItem = TryCast(btn.Tag, WebsiteItem)
 			If website Is Nothing Then Continue For
 
-			If String.Equals(website.url, CurrentLinkWeb, StringComparison.OrdinalIgnoreCase) Then
+			If hasCurrent AndAlso String.Equals(website.url, CurrentLinkWeb, StringComparison.OrdinalIgnoreCase) Then
 				btn.BackColor = Color.DodgerBlue
 				btn.ForeColor = Color.White
 			Else
@@ -600,34 +630,49 @@ Public Class maindashboard
 	End Sub
 
 	Private Async Function ReloadWebsite(url As String) As Task
-		If webViews.ContainsKey(url) Then
-			Dim wv = webViews(url)
+		If isNavigating Then Return
 
-			If currentWebView IsNot Nothing Then currentWebView.Visible = False
-			currentWebView = wv
-			wv.Visible = True
-			wv.BringToFront()
-			ShowLoading(AdminURLName)
-			If wv.CoreWebView2 IsNot Nothing Then
-				wv.CoreWebView2.Navigate(url)
+		isNavigating = True
+		navigationGeneration += 1
+		Dim myGen As Integer = navigationGeneration
+
+		Try
+			If webViews.ContainsKey(url) Then
+				Dim wv = webViews(url)
+
+				If currentWebView IsNot Nothing Then currentWebView.Visible = False
+				currentWebView = wv
+				wv.Visible = True
+				wv.BringToFront()
+				ShowLoading(AdminURLName)
+				If wv.CoreWebView2 IsNot Nothing Then
+					wv.CoreWebView2.Navigate(url)
+				End If
+			Else
+				' Not opened yet → just open it
+				Await ShowWebsite(url)
 			End If
-		Else
-			' Not opened yet → just open it
-			Await ShowWebsite(url)
-		End If
 
-		For Each ctrl As Control In PnlTabs.Controls
-			Dim btn As Button = TryCast(ctrl, Button)
-			If btn Is Nothing Then Continue For
+			For Each ctrl As Control In PnlTabs.Controls
+				Dim btn As Button = TryCast(ctrl, Button)
+				If btn Is Nothing Then Continue For
 
-			Dim website As WebsiteItem = TryCast(btn.Tag, WebsiteItem)
-			If website IsNot Nothing AndAlso
-			   String.Equals(website.url, url, StringComparison.OrdinalIgnoreCase) Then
-				LoadFaviconAsync(btn, url)
-				Exit For
+				Dim website As WebsiteItem = TryCast(btn.Tag, WebsiteItem)
+				If website IsNot Nothing AndAlso
+				   String.Equals(website.url, url, StringComparison.OrdinalIgnoreCase) Then
+					LoadFaviconAsync(btn, url)
+					Exit For
+				End If
+			Next
+			LoggerModule.Info($"Reload website: {url}")
+		Catch ex As Exception
+			If myGen <> navigationGeneration Then
+				isNavigating = False
+				HideLoading()
 			End If
-		Next
-		LoggerModule.Info($"Reload website: {url}")
+		End Try
+
+
 	End Function
 
 	Private Async Sub LoadFaviconAsync(btn As Button, websiteUrl As String)
@@ -757,5 +802,9 @@ Public Class maindashboard
 			Application.Exit()
 		End If
 		LoggerModule.Info("Application exit!")
+	End Sub
+
+	Private Sub MSLogs_Click(sender As Object, e As EventArgs) Handles MSLogs.Click
+		LoggerModule.OpenLogFolder()
 	End Sub
 End Class

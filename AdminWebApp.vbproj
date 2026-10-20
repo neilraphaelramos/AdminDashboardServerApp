@@ -12,15 +12,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <None Remove="Default Web\index.css" />
-	  <None Remove="Default Web\index.html" />
+	  <Compile Remove="Loading\**" />
+	  <EmbeddedResource Remove="Loading\**" />
+	  <None Remove="Loading\**" />
+	  <Page Remove="Loading\**" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="Default Web\index.css">
+	  <None Remove="Data\Content\Default Web\index.css" />
+	  <None Remove="Data\Content\Default Web\index.html" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Data\Content\Default Web\index.css">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
-	  <Content Include="Default Web\index.html">
+	  <Content Include="Data\Content\Default Web\index.html">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
@@ -47,25 +54,24 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Error\index.html">
+		<None Update="Data\Content\Error\index.html">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Error\style.css">
+		<None Update="Data\Content\Error\style.css">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="My Project\Application.myapp">
 			<Generator>MyApplicationCodeGenerator</Generator>
 			<LastGenOutput>Application.Designer.vb</LastGenOutput>
 		</None>
-		<None Update="Warning\certificate-warning.html">
+		<None Update="Data\Content\Warning\certificate-warning.html">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Config\" />
-	  <Folder Include="Error\" />
-	  <Folder Include="Loading\" />
+	  <Folder Include="Data\Config\" />
+	  <Folder Include="Data\Content\Error\" />
 	</ItemGroup>
 
 </Project>

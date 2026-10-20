@@ -4,10 +4,10 @@ Imports System.Text
 Module LoggerModule
 
     Private ReadOnly LogFolder As String =
-        Path.Combine(Application.StartupPath, "Logs")
+        Path.Combine(Application.StartupPath, DataPaths.LogsFolder)
 
     Private ReadOnly LogFile As String =
-        Path.Combine(LogFolder, $"app_{DateTime.Now:yyyy-MM-dd}.log")
+        Path.Combine(DataPaths.LogsFolder, $"app_{DateTime.Now:yyyy-MM-dd}.log")
 
     Private ReadOnly SyncLockObj As New Object()
 

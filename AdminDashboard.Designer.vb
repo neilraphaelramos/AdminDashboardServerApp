@@ -29,6 +29,7 @@ Partial Class maindashboard
 		MSSettings = New ToolStripMenuItem()
 		WVDisplay = New WebView2()
 		PnlTabs = New FlowLayoutPanel()
+		MSLogs = New ToolStripMenuItem()
 		MSMain.SuspendLayout()
 		CType(WVDisplay, ComponentModel.ISupportInitialize).BeginInit()
 		SuspendLayout()
@@ -36,7 +37,7 @@ Partial Class maindashboard
 		' MSMain
 		' 
 		MSMain.BackColor = SystemColors.Control
-		MSMain.Items.AddRange(New ToolStripItem() {FileToolStripMenuItem, MSSettings})
+		MSMain.Items.AddRange(New ToolStripItem() {FileToolStripMenuItem, MSSettings, MSLogs})
 		MSMain.Location = New Point(0, 0)
 		MSMain.Name = "MSMain"
 		MSMain.Size = New Size(1264, 24)
@@ -94,6 +95,12 @@ Partial Class maindashboard
 		PnlTabs.TabIndex = 2
 		PnlTabs.WrapContents = False
 		' 
+		' MSLogs
+		' 
+		MSLogs.Name = "MSLogs"
+		MSLogs.Size = New Size(44, 20)
+		MSLogs.Text = "Logs"
+		' 
 		' maindashboard
 		' 
 		AutoScaleDimensions = New SizeF(7F, 15F)
@@ -120,5 +127,6 @@ Partial Class maindashboard
 	Friend WithEvents WVDisplay As WebView2
 	Friend WithEvents PnlTabs As FlowLayoutPanel
 	Friend WithEvents MSExit As ToolStripMenuItem
+	Friend WithEvents MSLogs As ToolStripMenuItem
 
 End Class

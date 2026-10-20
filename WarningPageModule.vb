@@ -3,8 +3,7 @@ Imports System.IO
 
 Module WarningPageModule
 
-    Private ReadOnly WarningFolder As String =
-        Path.Combine(Application.StartupPath, "Warning")
+    Private ReadOnly WarningFolder As String = DataPaths.WarningFolder
 
     Private ReadOnly CertWarningFile As String =
         Path.Combine(WarningFolder, "certificate-warning.html")

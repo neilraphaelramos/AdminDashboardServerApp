@@ -3,12 +3,9 @@ Imports System.Xml.Linq
 
 Module SettingsModule
 
-    Private ReadOnly ConfigFolder As String =
-        Path.Combine(Application.StartupPath, "Config")
+    Private ReadOnly ConfigFolder As String = DataPaths.ConfigFolder
 
-    Private ReadOnly ConfigFile As String =
-        Path.Combine(ConfigFolder, "settings.config")
-
+    Private ReadOnly ConfigFile As String = DataPaths.ConfigFile
 
     '========================================
     ' Settings
@@ -121,7 +118,7 @@ Module SettingsModule
 
                 AutoTheme = GetBoolean(appearance, "AutoTheme", False)
                 AutoThemeDarkHour = GetInteger(appearance, "AutoThemeDarkHour", 18)
-                AutoThemeLightHour = GetInteger(appearance, "AutoThemeLightHour", 18)
+                AutoThemeLightHour = GetInteger(appearance, "AutoThemeLightHour", 6)
             End If
 
 

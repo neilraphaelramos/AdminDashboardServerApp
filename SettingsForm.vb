@@ -21,6 +21,7 @@ Public Class SettingsForm
 		SettingsModule.LoadSettings()
 		GetWebsites()
 
+
 		CHKStartDefault.Checked = SettingsModule.StartWithDefaultPage
 		CHKOpenLast.Checked = SettingsModule.OpenLastWebsite
 		CHKFullScreen.Checked = SettingsModule.IsFullScreen
@@ -71,6 +72,11 @@ Public Class SettingsForm
 
 		If CTCSettings IsNot Nothing Then
 			CTCSettings.ApplyTheme(IsCurrentDarkTheme())
+		End If
+
+		If LblWarning IsNot Nothing Then
+			LblWarning.ForeColor = Color.DarkOrange
+			LblWarning.BackColor = Color.Transparent
 		End If
 	End Sub
 
@@ -421,10 +427,10 @@ Public Class SettingsForm
 
 		If result <> DialogResult.Yes Then Return
 
-		SettingsModule.ResetSettingsConfig()
+		ResetSettingsConfig
 
-		Application.Restart()
-		Me.Close()
+		Application.Restart
+		Close
 	End Sub
 
 	Private Sub LVWebsites_SelectedIndexChanged(sender As Object, e As EventArgs) Handles LVWebsites.SelectedIndexChanged

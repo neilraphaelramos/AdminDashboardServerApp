@@ -22,14 +22,16 @@ Partial Class maindashboard
 	'Do not modify it using the code editor.
 	<System.Diagnostics.DebuggerStepThrough()>
 	Private Sub InitializeComponent()
+		Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(maindashboard))
 		MSMain = New MenuStrip()
 		FileToolStripMenuItem = New ToolStripMenuItem()
 		MSAddIP = New ToolStripMenuItem()
 		MSExit = New ToolStripMenuItem()
 		MSSettings = New ToolStripMenuItem()
+		MSLogs = New ToolStripMenuItem()
 		WVDisplay = New WebView2()
 		PnlTabs = New FlowLayoutPanel()
-		MSLogs = New ToolStripMenuItem()
+		MSHome = New ToolStripMenuItem()
 		MSMain.SuspendLayout()
 		CType(WVDisplay, ComponentModel.ISupportInitialize).BeginInit()
 		SuspendLayout()
@@ -46,7 +48,7 @@ Partial Class maindashboard
 		' 
 		' FileToolStripMenuItem
 		' 
-		FileToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {MSAddIP, MSExit})
+		FileToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {MSHome, MSAddIP, MSExit})
 		FileToolStripMenuItem.ForeColor = Color.Black
 		FileToolStripMenuItem.Name = "FileToolStripMenuItem"
 		FileToolStripMenuItem.Size = New Size(37, 20)
@@ -57,13 +59,13 @@ Partial Class maindashboard
 		MSAddIP.BackColor = SystemColors.Control
 		MSAddIP.ForeColor = Color.Black
 		MSAddIP.Name = "MSAddIP"
-		MSAddIP.Size = New Size(155, 22)
+		MSAddIP.Size = New Size(180, 22)
 		MSAddIP.Text = "Add URL Server"
 		' 
 		' MSExit
 		' 
 		MSExit.Name = "MSExit"
-		MSExit.Size = New Size(155, 22)
+		MSExit.Size = New Size(180, 22)
 		MSExit.Text = "Exit"
 		' 
 		' MSSettings
@@ -72,6 +74,12 @@ Partial Class maindashboard
 		MSSettings.Name = "MSSettings"
 		MSSettings.Size = New Size(61, 20)
 		MSSettings.Text = "Settings"
+		' 
+		' MSLogs
+		' 
+		MSLogs.Name = "MSLogs"
+		MSLogs.Size = New Size(44, 20)
+		MSLogs.Text = "Logs"
 		' 
 		' WVDisplay
 		' 
@@ -95,11 +103,11 @@ Partial Class maindashboard
 		PnlTabs.TabIndex = 2
 		PnlTabs.WrapContents = False
 		' 
-		' MSLogs
+		' MSHome
 		' 
-		MSLogs.Name = "MSLogs"
-		MSLogs.Size = New Size(44, 20)
-		MSLogs.Text = "Logs"
+		MSHome.Name = "MSHome"
+		MSHome.Size = New Size(180, 22)
+		MSHome.Text = "Home"
 		' 
 		' maindashboard
 		' 
@@ -109,6 +117,7 @@ Partial Class maindashboard
 		Controls.Add(WVDisplay)
 		Controls.Add(PnlTabs)
 		Controls.Add(MSMain)
+		Icon = CType(resources.GetObject("$this.Icon"), Icon)
 		MainMenuStrip = MSMain
 		Name = "maindashboard"
 		StartPosition = FormStartPosition.CenterScreen
@@ -128,5 +137,6 @@ Partial Class maindashboard
 	Friend WithEvents PnlTabs As FlowLayoutPanel
 	Friend WithEvents MSExit As ToolStripMenuItem
 	Friend WithEvents MSLogs As ToolStripMenuItem
+	Friend WithEvents MSHome As ToolStripMenuItem
 
 End Class

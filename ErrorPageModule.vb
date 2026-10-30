@@ -6,6 +6,8 @@ Module ErrorPageModule
 	Private ReadOnly ErrorFolder As String = DataPaths.ErrorFolder
 	Private ReadOnly ErrorHtmlPath As String = Path.Combine(ErrorFolder, "index.html")
 
+	Public OnErrorPageReady As Action = Nothing
+
 	Public Sub Show(webView As CoreWebView2, failedUrl As String, Optional errorMessage As String = "took too long to respond")
 		Try
 			If webView Is Nothing Then Return
@@ -47,6 +49,8 @@ Module ErrorPageModule
 			$"{{""url"":""{EscapeJson(_lastFailedUrl)}"",""message"":""{EscapeJson(_lastErrorMessage)}"",""dark"":{isDark.ToString().ToLower()}}}"
 			webView.PostWebMessageAsJson(json)
 		End If
+
+		OnErrorPageReady.Invoke()
 	End Sub
 
 	Private Function EscapeJson(value As String) As String

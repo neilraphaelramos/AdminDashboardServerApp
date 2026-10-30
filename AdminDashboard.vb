@@ -64,6 +64,12 @@ Public Class maindashboard
 
 		LoggerModule.Info($"Loaded {GetWebsites().Count} website(s)")
 		DebugModule.Trace("maindashboard_Load: UI ready, starting WebView2")
+		ErrorPageModule.OnErrorPageReady = AddressOf OnCustomErrorPageReady
+	End Sub
+
+	Private Sub OnCustomErrorPageReady()
+		isNavigating = False
+		HideLoading()
 	End Sub
 
 	Private Async Sub Initialize()
@@ -145,18 +151,25 @@ Public Class maindashboard
 	)
 	End Sub
 	Private Sub WebView_NavigationCompleted(sender As Object, e As CoreWebView2NavigationCompletedEventArgs)
-		isNavigating = False
-		HideLoading()
 		isAuthenticating = False
 
-		If e.IsSuccess Then Return
 
-		If e.WebErrorStatus = CoreWebView2WebErrorStatus.ValidAuthenticationCredentialsRequired OrElse
-			e.WebErrorStatus = CoreWebView2WebErrorStatus.ValidProxyAuthenticationRequired Then
+		If e.IsSuccess Then
+			isNavigating = False
+			HideLoading()
 			Return
 		End If
 
-		If isAuthenticating Then Return
+		If e.WebErrorStatus = CoreWebView2WebErrorStatus.ValidAuthenticationCredentialsRequired OrElse
+			e.WebErrorStatus = CoreWebView2WebErrorStatus.ValidProxyAuthenticationRequired Then
+			HideLoading()
+			Return
+		End If
+
+		If isAuthenticating Then
+			isNavigating = False
+			Return
+		End If
 
 		Dim core As CoreWebView2 = TryCast(sender, CoreWebView2)
 		If core Is Nothing Then Return
@@ -166,6 +179,8 @@ Public Class maindashboard
 		   currentSource.Contains("index.html") OrElse
 		   currentSource.Contains("certificate-warning") OrElse
 		   currentSource.StartsWith("data:", StringComparison.OrdinalIgnoreCase) Then
+			isNavigating = False
+			HideLoading()
 			Return
 		End If
 
@@ -174,6 +189,8 @@ Public Class maindashboard
 			Dim url = If(String.IsNullOrWhiteSpace(CurrentLinkWeb), pendingCertUrl, CurrentLinkWeb)
 			LoggerModule.Warn($"Showing certificate warning for: {url} (status={e.WebErrorStatus})")
 			WarningPageModule.ShowCertificateWarning(core, url, AutoThemeModule.ResolveTheme())
+			isNavigating = False
+			HideLoading()
 			Return
 		End If
 
@@ -188,6 +205,8 @@ Public Class maindashboard
 		If isCertError Then
 			LoggerModule.Warn($"Certificate warning: {CurrentLinkWeb} ({e.WebErrorStatus})")
 			WarningPageModule.ShowCertificateWarning(core, CurrentLinkWeb, AutoThemeModule.ResolveTheme())
+			isNavigating = False
+			HideLoading()
 			Return
 		End If
 
@@ -806,5 +825,42 @@ Public Class maindashboard
 
 	Private Sub MSLogs_Click(sender As Object, e As EventArgs) Handles MSLogs.Click
 		LoggerModule.OpenLogFolder()
+	End Sub
+
+	Private Sub MSHome_Click(sender As Object, e As EventArgs) Handles MSHome.Click
+		GoHome()
+	End Sub
+
+	Private Sub GoHome()
+		CurrentLinkWeb = ""
+		AdminURLName = ""
+		isNavigating = False
+		HideLoading()
+
+		If CurrentLinkWeb IsNot Nothing Then
+			currentWebView.Visible = False
+			currentWebView = Nothing
+		End If
+
+		For Each kv In webViews
+			If kv.Value IsNot Nothing Then
+				kv.Value.Visible = False
+			End If
+		Next
+
+		If WVDisplay IsNot Nothing Then
+			WVDisplay.Visible = True
+			WVDisplay.BringToFront()
+		End If
+
+		If WVDisplay Is Nothing OrElse WVDisplay.CoreWebView2 Is Nothing Then
+			Return
+		End If
+
+		SetTheme(AutoThemeModule.ResolveTheme())
+		ShowDefaultWeb(WVDisplay.CoreWebView2)
+		HighlightActiveButton()
+
+		LoggerModule.Info("Navigated to Home (Default Page)")
 	End Sub
 End Class

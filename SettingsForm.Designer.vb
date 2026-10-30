@@ -30,7 +30,7 @@ Partial Class SettingsForm
 		lblThemeDescription = New Label()
 		CMBTheme = New ComboBox()
 		lblTheme = New Label()
-		Label7 = New Label()
+		LblWarning = New Label()
 		CHKInvalidCertificates = New CheckBox()
 		Label6 = New Label()
 		CHKContextMenu = New CheckBox()
@@ -162,15 +162,15 @@ Partial Class SettingsForm
 		lblTheme.TabIndex = 1
 		lblTheme.Text = "Theme"
 		' 
-		' Label7
+		' LblWarning
 		' 
-		Label7.AutoSize = True
-		Label7.ForeColor = Color.DarkOrange
-		Label7.Location = New Point(6, 180)
-		Label7.Name = "Label7"
-		Label7.Size = New Size(193, 30)
-		Label7.TabIndex = 7
-		Label7.Text = "⚠ Only enable this for trusted local" & vbLf & "  server services."
+		LblWarning.AutoSize = True
+		LblWarning.ForeColor = Color.DarkOrange
+		LblWarning.Location = New Point(6, 180)
+		LblWarning.Name = "LblWarning"
+		LblWarning.Size = New Size(193, 30)
+		LblWarning.TabIndex = 7
+		LblWarning.Text = "⚠ Only enable this for trusted local" & vbLf & "  server services."
 		' 
 		' CHKInvalidCertificates
 		' 
@@ -308,7 +308,7 @@ Partial Class SettingsForm
 		' 
 		BtnResetSettings.BackColor = SystemColors.Control
 		BtnResetSettings.FlatStyle = FlatStyle.Popup
-		BtnResetSettings.Location = New Point(6, 179)
+		BtnResetSettings.Location = New Point(6, 159)
 		BtnResetSettings.Name = "BtnResetSettings"
 		BtnResetSettings.Size = New Size(127, 23)
 		BtnResetSettings.TabIndex = 9
@@ -318,7 +318,7 @@ Partial Class SettingsForm
 		' Label11
 		' 
 		Label11.AutoSize = True
-		Label11.Location = New Point(6, 152)
+		Label11.Location = New Point(6, 132)
 		Label11.Name = "Label11"
 		Label11.Size = New Size(172, 15)
 		Label11.TabIndex = 8
@@ -328,7 +328,7 @@ Partial Class SettingsForm
 		' 
 		Label10.AutoSize = True
 		Label10.Font = New Font("Segoe UI", 11.25F, FontStyle.Bold, GraphicsUnit.Point, CByte(0))
-		Label10.Location = New Point(6, 123)
+		Label10.Location = New Point(6, 103)
 		Label10.Name = "Label10"
 		Label10.Size = New Size(48, 20)
 		Label10.TabIndex = 7
@@ -337,7 +337,7 @@ Partial Class SettingsForm
 		' CHKDebug
 		' 
 		CHKDebug.AutoSize = True
-		CHKDebug.Location = New Point(6, 65)
+		CHKDebug.Location = New Point(6, 60)
 		CHKDebug.Name = "CHKDebug"
 		CHKDebug.Size = New Size(95, 19)
 		CHKDebug.TabIndex = 6
@@ -347,7 +347,7 @@ Partial Class SettingsForm
 		' CHKLogging
 		' 
 		CHKLogging.AutoSize = True
-		CHKLogging.Location = New Point(6, 40)
+		CHKLogging.Location = New Point(6, 35)
 		CHKLogging.Name = "CHKLogging"
 		CHKLogging.Size = New Size(105, 19)
 		CHKLogging.TabIndex = 5
@@ -564,7 +564,7 @@ Partial Class SettingsForm
 		' TPWebView
 		' 
 		TPWebView.Controls.Add(lblRestartInfo)
-		TPWebView.Controls.Add(Label7)
+		TPWebView.Controls.Add(LblWarning)
 		TPWebView.Controls.Add(Label5)
 		TPWebView.Controls.Add(CHKInvalidCertificates)
 		TPWebView.Controls.Add(CHKDevTools)
@@ -659,7 +659,7 @@ Partial Class SettingsForm
 	Friend WithEvents lblThemeDescription As Label
 	Friend WithEvents CMBTheme As ComboBox
 	Friend WithEvents lblTheme As Label
-	Friend WithEvents Label7 As Label
+	Friend WithEvents LblWarning As Label
 	Friend WithEvents CHKInvalidCertificates As CheckBox
 	Friend WithEvents Label6 As Label
 	Friend WithEvents CHKContextMenu As CheckBox
